@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
 
 public partial class GameLogic : RefCounted
@@ -32,6 +33,7 @@ public partial class GameLogic : RefCounted
             }
         }
     }
+
 
     public static async Task Move(int dx, int dy)
     {
@@ -134,14 +136,15 @@ public partial class GameLogic : RefCounted
                     tween.TweenProperty(step.e.node, "z_index", Res.Z_Ground, MOVE_INTERVAL);
                 }
             }
-            foreach(var e in step.e.swallows.Values)
+            MapAllSawllowedElement(step.e, (e, layer) =>
             {
                 if (e.node != null)
                 {
                     Tween tween = e.node.CreateTween();
                     tween.TweenProperty(e.node, "position", p, MOVE_INTERVAL);
+                    tween.TweenProperty(e.node, "z_index", Res.Z_Swallow + layer, MOVE_INTERVAL);
                 }
-            }
+            }, step.intoGate ? 1 : 0);
         }
         Game.Instance.SetProcess(false);
         await Game.Instance.Wait(MOVE_INTERVAL);
@@ -151,23 +154,32 @@ public partial class GameLogic : RefCounted
         foreach (var gate in gameMap.boxData.Values)
         {
             Vector2I pos = gameMap.GetElementPos(gate);
-            CreateNodeForSwallowElement(gameMap, gate, pos);
+            MapAllSawllowedElement(gate, (e, layer) =>
+            {
+                if (e.node == null)
+                {
+                    var node = ElementNode.CreateElementNode(e, Game.CalcNodePosition(gameMap, pos));
+                    node.Scale = Res.Scale_Normal * Mathf.Pow(Res.Scale_Swallow_f, layer + 1);
+                    node.ZIndex = Res.Z_Swallow + layer;
+                    Game.Instance.AddElementNode(node);
+                    e.node = node;
+                }
+            });
         }
     }
-    private static void CreateNodeForSwallowElement(GameMap gameMap, Element gate, Vector2I pos, int layer = 0)
+
+    private static void MapAllSawllowedElement(Element e, Action<Element, int> action, int layerStart = 0)
     {
-        foreach (var e in gate.swallows.Values)
+        foreach (var s in e.swallows.Values)
         {
-            if (e.node == null)
-            {
-                var node = ElementNode.CreateElementNode(e, Game.CalcNodePosition(gameMap, pos));
-                node.Scale = Res.Scale_Swallow * (1 - 0.1f * layer);
-                node.ZIndex = Res.Z_Swallow + layer;
-                Game.Instance.AddElementNode(node);
-                e.node = node;
-            }
-            CreateNodeForSwallowElement(gameMap, e, pos, layer + 1);
+            action.Invoke(s, layerStart);
+            MapAllSawllowedElement(s, action, layerStart + 1);
         }
+    }
+
+    private static IEnumerable<Element> GetAllSwallowedElement(Element e)
+    {
+        return e.swallows.Values.Concat(e.swallows.Values.SelectMany(e => GetAllSwallowedElement(e)));
     }
 
     public static void ApplyStep(GameMap map, List<Step> steps, bool reverse = false)
@@ -213,7 +225,7 @@ public partial class GameLogic : RefCounted
                             foreach (var swallowItem in copy.swallows.Values)
                             {
                                 Game.Instance.RemoveElementNode(swallowItem.node);
-                                
+
                             }
                             Game.Instance.RemoveElementNode(copy.node);
                         }

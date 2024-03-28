@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 public partial class Game : Node
@@ -25,7 +26,12 @@ public partial class Game : Node
         GameLogic.Clear();
         Game.gameMap = null;
 
-        GameMap gameMap = GameMap.ParseFile("res://mapResource/level1.json");
+
+        GameMap gameMap = GameMap.ParseFile(Path.GetDirectoryName(OS.GetExecutablePath()) + "/level1.json");
+        if (gameMap == null)
+        {
+            gameMap = GameMap.ParseFile("res://mapResource/level1.json");
+        }
         GD.Print(gameMap.boxData);
         LoadGameMap(gameMap);
     }

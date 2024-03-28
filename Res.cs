@@ -10,7 +10,8 @@ public partial class Res : RefCounted
     public const int Z_Swallow = 20;
     public const int Z_Target = 30;
 
-    public static readonly Vector2 Scale_Swallow = new(0.6f, 0.6f);
+    public const float Scale_Swallow_f = 0.7f;
+    public static readonly Vector2 Scale_Swallow = new(Scale_Swallow_f, Scale_Swallow_f);
     public static readonly Vector2 Scale_Normal = new(1f, 1f);
 
     private static readonly Dictionary<string, ImageTexture> textureMap = new();

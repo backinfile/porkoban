@@ -69,7 +69,7 @@ public partial class Element : RefCounted
 
     public void Rotate(DIR from, DIR to)
     {
-        this.Rotation = ((int)to - (int)from + 4) % 4;
+        this.Rotation = (this.Rotation + (int)to - (int)from + 4) % 4;
     }
 
     public int GetSlot(DIR dir)

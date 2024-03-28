@@ -158,6 +158,11 @@ public partial class GameMap : RefCounted
     public static GameMap ParseFile(string file)
     {
         string json = FileAccess.GetFileAsString(file);
+        if (json == null || json.Length == 0)
+        {
+            return null;
+        }
+
         GameMap map = new GameMap();
         Godot.Collections.Dictionary data = Json.ParseString(json).AsGodotDictionary();
         int width = map.width = (int)data["width"];
