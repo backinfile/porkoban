@@ -41,6 +41,14 @@ public partial class ElementNode : Node2D
             }
         }
 
+        if (element.type == Type.Target)
+        {
+            node.ZIndex = Res.Z_Target;
+        } else
+        {
+            node.ZIndex = Res.Z_Ground;
+        }
+
 
         return node;
     }

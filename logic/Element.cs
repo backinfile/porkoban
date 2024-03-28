@@ -1,14 +1,16 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class Element : RefCounted
 {
     public Type type = Type.None;
     public Side[] side = { Side.None, Side.None, Side.None, Side.None }; // up down left right
     public char[] gate = { ' ', ' ', ' ', ' ' }; // use non UpperCase
-    public ElementNode node = null;
-    public ElementNode copyNode = null;
     public int Rotation { get; private set; }
+
+    public ElementNode node = null;
+    public Dictionary<char, Element> swallows = new();
 
     public Element(string typeStr)
     {
@@ -45,6 +47,26 @@ public partial class Element : RefCounted
         }
     }
 
+    private Element()
+    {
+    }
+
+    public Element MakeCopy()
+    {
+        var copy = new Element
+        {
+            type = type,
+            side = (Side[])side.Clone(),
+            gate = (char[])gate.Clone(),
+            Rotation = Rotation,
+        };
+        foreach(var item in this.swallows)
+        {
+            copy.swallows[item.Key] = item.Value.MakeCopy();
+        }
+        return copy;
+    }
+
     public void Rotate(DIR from, DIR to)
     {
         this.Rotation = ((int)to - (int)from + 4) % 4;
@@ -52,7 +74,6 @@ public partial class Element : RefCounted
 
     public int GetSlot(DIR dir)
     {
-        GD.Print($"before {(int)dir} after {(this.Rotation + (int)dir + 4) % 4}");
         return (this.Rotation + (int)dir + 4) % 4;
     }
     public char GetGate(DIR dir)
@@ -62,6 +83,16 @@ public partial class Element : RefCounted
     public Side GetSide(DIR dir)
     {
         return this.side[GetSlot(dir)];
+    }
+
+    public List<DIR> GetDIRByGate(char gate, DIR? except = null)
+    {
+        List<DIR> dirList = new List<DIR>();
+        foreach(var dir in Enum.GetValues<DIR>())
+        {
+            if (dir != except && GetGate(dir) == gate) dirList.Add(dir);
+        }
+        return dirList;
     }
 
     public override string ToString()

@@ -9,23 +9,27 @@ public partial class Step : RefCounted
     public readonly Vector2I to;
     public bool intoGate = false;
     public bool outGate = false;
-    public char gate = ' ';
+    public Element gateElement = null;
     public DIR gateDIR = DIR.LEFT;
 
-    public Step(Element e, Vector2I from, Vector2I to, bool intoGate = false, bool outGate = false, char gate = ' ', DIR gateDIR = default)
+    public Step(Element e, Vector2I from, Vector2I to, bool intoGate = false, bool outGate = false, Element gateElement = null, DIR gateDIR = default)
     {
         this.e = e;
         this.from = from;
         this.to = to;
         this.intoGate = intoGate;
         this.outGate = outGate;
-        this.gate = gate;
+        this.gateElement = gateElement;
         this.gateDIR = gateDIR;
     }
 
     override public string ToString()
     {
-        string inOut = (intoGate ? "IN" : "") + (outGate ? "OUT" : "") + " " + gate;
+        string inOut = (intoGate ? "IN" : "") + (outGate ? "OUT" : "");
+        if (intoGate || outGate)
+        {
+            inOut += " " + gateElement.GetGate(gateDIR);
+        }
         return $"[{e.type}:{from}->{to} {inOut}]";
     }
 

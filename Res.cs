@@ -4,6 +4,15 @@ using System;
 
 public partial class Res : RefCounted
 {
+    public const int Z_Background = -10;
+    public const int Z_Floor = 0;
+    public const int Z_Ground = 10;
+    public const int Z_Swallow = 20;
+    public const int Z_Target = 30;
+
+    public static readonly Vector2 Scale_Swallow = new(0.6f, 0.6f);
+    public static readonly Vector2 Scale_Normal = new(1f, 1f);
+
     private static readonly Dictionary<string, ImageTexture> textureMap = new();
     public static ImageTexture Type_Target_Vailed;
 
@@ -38,15 +47,25 @@ public partial class Res : RefCounted
                     img.Fill(Colors.Black);
                     break;
                 case Type.Box:
-                    img.Fill(Colors.White);
-                    break;
+                    {
+                        img.Fill(Colors.White);
+                        var color = new Color(0.8f, 0.8f, 0.8f, 1f);
+                        img.FillRect(new Rect2I(0, 0, width, borderWidth), color);
+                        img.FillRect(new Rect2I(0, 0, borderWidth, width), color);
+                        img.FillRect(new Rect2I(width - borderWidth, 0, width, width), color);
+                        img.FillRect(new Rect2I(0, width - borderWidth, width, width), color);
+                        break;
+                    }
                 case Type.Target:
-                    var color = new Color(0f, 0f, 1f, 0.3f);
-                    img.FillRect(new Rect2I(0, 0, width, borderWidth), color);
-                    img.FillRect(new Rect2I(0, 0, borderWidth, width), color);
-                    img.FillRect(new Rect2I(width - borderWidth, 0, width, width), color);
-                    img.FillRect(new Rect2I(0, width - borderWidth, width, width), color);
-                    break;
+                    {
+
+                        var color = new Color(0f, 0f, 1f, 0.3f);
+                        img.FillRect(new Rect2I(0, 0, width, borderWidth), color);
+                        img.FillRect(new Rect2I(0, 0, borderWidth, width), color);
+                        img.FillRect(new Rect2I(width - borderWidth, 0, width, width), color);
+                        img.FillRect(new Rect2I(0, width - borderWidth, width, width), color);
+                        break;
+                    }
                 default:
                     img.Fill(Colors.LightBlue);
                     break;

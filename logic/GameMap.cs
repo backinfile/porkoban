@@ -1,5 +1,8 @@
 using Godot;
-using Godot.Collections;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 public partial class GameMap : RefCounted
 {
@@ -7,7 +10,6 @@ public partial class GameMap : RefCounted
     public int height = 1;
     public readonly Dictionary<int, Element> boxData = new();
     public readonly Dictionary<int, Element> floorData = new();
-    public readonly Dictionary<char, Element> gateData = new();
 
     private const int FACTOR = 1000;
 
@@ -62,14 +64,20 @@ public partial class GameMap : RefCounted
     // element full, cannot swallow
     public bool IsGateFull(Element e)
     {
-        foreach(var ch in e.gate)
+        return e.swallows.Count > 0;
+    }
+
+    public List<Element> FindGateElements(char gate, Element except = null)
+    {
+        var list = new List<Element>();
+        foreach (var pair in boxData)
         {
-            if (ch != ' ' && gateData.TryGetValue(ch, out _))
+            if (pair.Value != except && pair.Value.gate.Contains(gate))
             {
-                return true;
+                list.Add(pair.Value);
             }
         }
-        return false;
+        return list;
     }
 
     public Vector2I GetElementPos(Element e)
@@ -119,13 +127,14 @@ public partial class GameMap : RefCounted
 
     public GameMap MakeCopy()
     {
-        var copy = new GameMap();
-        copy.width = width;
-        copy.height = height;
-        copy.boxData.Merge(boxData);
-        copy.floorData.Merge(boxData);
-        copy.gateData.Merge(gateData);
-        return copy;
+        //var copy = new GameMap();
+        //copy.width = width;
+        //copy.height = height;
+        //copy.boxData.Merge(boxData);
+        //copy.floorData.Merge(boxData);
+        //copy.gateData.Merge(gateData);
+        //return copy;
+        throw new NotImplementedException();
     }
 
     public bool IsGameOver()
@@ -145,50 +154,12 @@ public partial class GameMap : RefCounted
         return true;
     }
 
-    public void ApplyStep(System.Collections.Generic.List<Step> steps, bool reverse = false)
-    {
-        if (reverse)
-        {
-            for (int i = steps.Count - 1; i >= 0; i--)
-            {
-                Step step = steps[i];
-                RemoveElement(step.e);
-                SetElement(step.e, step.from.X, step.from.Y);
-
-                if (step.intoGate)
-                {
-                    gateData.Remove(step.gate);
-                }
-                if (step.outGate)
-                {
-                    gateData[step.gate] = step.e;
-                }
-            }
-        }
-        else
-        {
-            for (int i = 0; i < steps.Count; i++)
-            {
-                Step step = steps[i];
-                RemoveElement(step.e);
-                if (!step.intoGate) SetElement(step.e, step.to.X, step.to.Y);
-                if (step.intoGate)
-                {
-                    gateData[step.gate] = step.e;
-                }
-                if (step.outGate)
-                {
-                    gateData.Remove(step.gate);
-                }
-            }
-        }
-    }
 
     public static GameMap ParseFile(string file)
     {
         string json = FileAccess.GetFileAsString(file);
         GameMap map = new GameMap();
-        Dictionary data = Json.ParseString(json).AsGodotDictionary();
+        Godot.Collections.Dictionary data = Json.ParseString(json).AsGodotDictionary();
         int width = map.width = (int)data["width"];
         int height = map.height = (int)data["height"];
 

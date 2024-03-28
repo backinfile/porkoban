@@ -4,16 +4,16 @@ using System.Threading.Tasks;
 
 public partial class Game : Node
 {
-
-    public static GameMap gameMap = null;
+    public static Game Instance { get; private set; }
+    public static GameMap gameMap { get; private set; }
     private static Vector2 viewport_size;
 
 
     public override void _Ready()
     {
-        GD.Print($"{GetPath()}");
-        Res.Init();
+        Instance = this;
         viewport_size = GetViewport().GetVisibleRect().Size with { };
+        Res.Init();
 
         //Element element = new Element("B    ");
         //GetNode("World").AddChild(ElementNode.CreateElementNode(element, 100));
@@ -83,35 +83,36 @@ public partial class Game : Node
             node.QueueFree();
         }
 
-        Vector2 startPosition = CalcNodePosition(gameMap);
-        var background = new ColorRect();
-        background.Color = Colors.LightGray;
-        background.Position = new Vector2(startPosition.X - ElementNode.Element_Size / 2.0f, startPosition.Y - ElementNode.Element_Size / 2.0f);
-        background.Size = new Vector2(gameMap.width * (ElementNode.Element_Size + ElementNode.Element_Gap), gameMap.height * (ElementNode.Element_Size + ElementNode.Element_Gap));
-        world.AddChild(background);
-
-
-        foreach (var pair in gameMap.boxData)
-        {
-            if (pair.Value.type == Type.Box)
-            {
-                ElementNode node = ElementNode.CreateElementNode(pair.Value, CalcNodePosition(gameMap, gameMap.GetElementPos(pair.Value)));
-                world.AddChild(node);
-            }
+        { // add background
+            Vector2 startPosition = CalcNodePosition(gameMap);
+            var background = new ColorRect();
+            background.Color = Colors.LightGray;
+            background.Position = new Vector2(startPosition.X - ElementNode.Element_Size / 2.0f, startPosition.Y - ElementNode.Element_Size / 2.0f);
+            background.Size = new Vector2(gameMap.width * (ElementNode.Element_Size + ElementNode.Element_Gap), gameMap.height * (ElementNode.Element_Size + ElementNode.Element_Gap));
+            background.ZIndex = Res.Z_Background;
+            world.AddChild(background);
         }
+
         foreach (var pair in gameMap.floorData)
         {
             ElementNode node = ElementNode.CreateElementNode(pair.Value, CalcNodePosition(gameMap, gameMap.GetElementPos(pair.Value)));
-            world.AddChild(node);
+            AddElementNode(node);
         }
         foreach (var pair in gameMap.boxData)
         {
-            if (pair.Value.type != Type.Box)
-            {
-                ElementNode node = ElementNode.CreateElementNode(pair.Value, CalcNodePosition(gameMap, gameMap.GetElementPos(pair.Value)));
-                world.AddChild(node);
-            }
+            ElementNode node = ElementNode.CreateElementNode(pair.Value, CalcNodePosition(gameMap, gameMap.GetElementPos(pair.Value)));
+            AddElementNode(node);
         }
+    }
+
+    public void AddElementNode(Node node)
+    {
+        GetNode("World").AddChild(node);
+    }
+    public void RemoveElementNode(Node node)
+    {
+        GetNode("World").RemoveChild(node);
+        node.QueueFree();
     }
 
     public static Vector2 CalcNodePosition(GameMap gameMap, int x = 0, int y = 0)

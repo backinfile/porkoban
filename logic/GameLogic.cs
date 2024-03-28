@@ -1,15 +1,14 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 public partial class GameLogic : RefCounted
 {
     public const double MOVE_INTERVAL = 0.13;
     public static readonly Stack<StepGroup> history = new();
+    private static readonly Queue<KeyValuePair<Element, DIR>> checkGateFirstQueue = new();
 
 
     public static void Clear()
@@ -24,7 +23,7 @@ public partial class GameLogic : RefCounted
             StepGroup steps = history.Pop();
             foreach (var stepOnce in steps.steps)
             {
-                Game.gameMap.ApplyStep(stepOnce, true);
+                ApplyStep(Game.gameMap, stepOnce, true);
                 foreach (var step in stepOnce)
                 {
                     var p = Game.CalcNodePosition(Game.gameMap, step.from.X, step.from.Y);
@@ -58,80 +57,197 @@ public partial class GameLogic : RefCounted
         }
 
         // check gate in full state
-        bool loop = true;
-        while (loop)
+        while (true)
         {
-            loop = false;
-            foreach (var pair in gameMap.gateData)
+            // find one move to move
+            MoveResult moveResult = null;
+            while (checkGateFirstQueue.Count != 0)
             {
-                var gateChar = pair.Key;
-                var e = pair.Value;
-                MoveResult moveResult = CheckGateAround(gameMap, e, gateChar);
+                var pair = checkGateFirstQueue.Dequeue();
+                var gate = pair.Key;
+                var dir = pair.Value;
+                var gateChar = gate.GetGate(dir);
+                GD.Print($"check checkGateFirstQueue gate:{gate} dir:{dir}");
+                if (!gate.swallows.TryGetValue(gateChar, out var e)) continue;
+                moveResult = CheckGateAround(gameMap, gate, gateChar, e, dir);
                 if (moveResult.moveSuccess)
                 {
-                    GD.Print($"move out of gate {moveResult}");
-                    curStepHistory.steps.AddRange(moveResult.steps.steps);
-                    foreach (var stepOnce in moveResult.steps.steps)
-                    {
-                        await DoMove(stepOnce);
-                    }
-                    loop = true;
+                    GD.Print("find success in checkGateFirstQueue");
                     break;
                 }
             }
+            if (moveResult == null || !moveResult.moveSuccess)
+            {
+                foreach (var pair in gameMap.boxData)
+                {
+                    var gate = pair.Value;
+                    if (gate.swallows.Count == 0) continue;
+                    foreach (var item in gate.swallows)
+                    {
+                        var gateChar = item.Key;
+                        moveResult = CheckGateAround(gameMap, gate, gateChar, item.Value);
+                        if (!moveResult.moveSuccess) continue;
+                        break;
+                    }
+                    if (moveResult?.moveSuccess ?? false) break;
+                }
+            }
+            if (moveResult != null && moveResult.moveSuccess)
+            {
+                curStepHistory.steps.AddRange(moveResult.steps.steps);
+                foreach (var stepOnce in moveResult.steps.steps)
+                {
+                    await DoMove(stepOnce);
+                }
+            }
+            else
+            {
+                break;
+            }
         }
+        checkGateFirstQueue.Clear();
     }
     public static async Task DoMove(List<Step> steps)
     {
         GameMap gameMap = Game.gameMap;
 
-        gameMap.ApplyStep(steps);
+        ApplyStep(gameMap, steps);
         foreach (var step in steps)
         {
             GD.Print($"DOMOVE step:{step}");
-
-           
-
             var p = Game.CalcNodePosition(gameMap, step.to);
-            Tween tween = step.e.node.CreateTween();
-            if (step.outGate)
             {
-                tween.TweenProperty(step.e.node, "position", Game.CalcNodePosition(gameMap, step.from), 0.01);
+                Tween tween = step.e.node.CreateTween();
+                if (step.outGate)
+                {
+                    tween.TweenProperty(step.e.node, "position", Game.CalcNodePosition(gameMap, step.from), 0.01);
+                }
+                tween.TweenProperty(step.e.node, "position", p, MOVE_INTERVAL);
+                if (step.intoGate)
+                {
+                    tween.TweenProperty(step.e.node, "scale", Res.Scale_Swallow, MOVE_INTERVAL);
+                    tween.TweenProperty(step.e.node, "z_index", Res.Z_Swallow, MOVE_INTERVAL);
+                }
+                if (step.outGate)
+                {
+                    tween.TweenProperty(step.e.node, "scale", Res.Scale_Normal, MOVE_INTERVAL);
+                    tween.TweenProperty(step.e.node, "z_index", Res.Z_Ground, MOVE_INTERVAL);
+                }
             }
-            tween.TweenProperty(step.e.node, "position", p, MOVE_INTERVAL);
-            if (step.intoGate)
+            foreach(var e in step.e.swallows.Values)
             {
-                tween.TweenProperty(step.e.node, "scale", new Vector2(0.8f, 0.8f), MOVE_INTERVAL);
-                tween.TweenProperty(step.e.node, "z_index", 1, MOVE_INTERVAL);
-            }
-            if (step.outGate)
-            {
-                tween.TweenProperty(step.e.node, "scale", new Vector2(1f, 1f), MOVE_INTERVAL);
-                //tween.TweenProperty(step.e.node, "z_index", 0, MOVE_INTERVAL);
+                if (e.node != null)
+                {
+                    Tween tween = e.node.CreateTween();
+                    tween.TweenProperty(e.node, "position", p, MOVE_INTERVAL);
+                }
             }
         }
-        Game gameNode = gameMap.GetPlayer().node.GetNode<Game>("/root/Game");
-        gameNode.SetProcess(false);
-        await gameNode.Wait(MOVE_INTERVAL);
-        gameNode.SetProcess(true);
-    }
+        Game.Instance.SetProcess(false);
+        await Game.Instance.Wait(MOVE_INTERVAL);
+        Game.Instance.SetProcess(true);
 
-    public static MoveResult CheckGateAround(GameMap gameMap, Element e, char gateChar)
-    {
-        GD.Print($"check gate:{gateChar}");
+        // create node for swallow copy
         foreach (var gate in gameMap.boxData.Values)
         {
-            foreach (var dir in Enum.GetValues<DIR>())
+            Vector2I pos = gameMap.GetElementPos(gate);
+            CreateNodeForSwallowElement(gameMap, gate, pos);
+        }
+    }
+    private static void CreateNodeForSwallowElement(GameMap gameMap, Element gate, Vector2I pos, int layer = 0)
+    {
+        foreach (var e in gate.swallows.Values)
+        {
+            if (e.node == null)
             {
-                if (gate.GetGate(dir) == gateChar)
-                {
-                    Vector2I pos = gameMap.GetElementPos(gate);
-                    var nextPos = pos.NextPos(dir);
-                    if (!gameMap.InMapArea(nextPos) || gameMap.GetElement(nextPos) != null) continue;
+                var node = ElementNode.CreateElementNode(e, Game.CalcNodePosition(gameMap, pos));
+                node.Scale = Res.Scale_Swallow * (1 - 0.1f * layer);
+                node.ZIndex = Res.Z_Swallow + layer;
+                Game.Instance.AddElementNode(node);
+                e.node = node;
+            }
+            CreateNodeForSwallowElement(gameMap, e, pos, layer + 1);
+        }
+    }
 
-                    var step = new Step(e, pos, pos.NextPos(dir), false, true, gateChar);
-                    return new MoveResult(true, new List<List<Step>> { new List<Step> { step } }, null);
+    public static void ApplyStep(GameMap map, List<Step> steps, bool reverse = false)
+    {
+        if (!reverse)
+        {
+            for (int i = 0; i < steps.Count; i++)
+            {
+                Step step = steps[i];
+                map.RemoveElement(step.e);
+                if (!step.intoGate) map.SetElement(step.e, step.to.X, step.to.Y);
+                if (step.intoGate)
+                {
+                    char gateChar = step.gateElement.GetGate(step.gateDIR);
+                    step.gateElement.swallows[gateChar] = step.e;
+                    foreach (var dir in step.gateElement.GetDIRByGate(gateChar, step.gateDIR))
+                    {
+                        checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(step.gateElement, dir));
+                    }
+                    foreach (var e in map.FindGateElements(gateChar, step.gateElement))
+                    {
+                        e.swallows[gateChar] = step.e.MakeCopy();
+                        foreach (var dir in e.GetDIRByGate(gateChar))
+                        {
+                            checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(e, dir));
+                        }
+                    }
                 }
+                if (step.outGate)
+                {
+                    char gateChar = step.gateElement.GetGate(step.gateDIR);
+                    step.gateElement.swallows.Remove(gateChar);
+                    foreach (var e in map.FindGateElements(gateChar, step.gateElement))
+                    {
+                        if (e.swallows.Remove(gateChar, out var copy))
+                        {
+                            foreach (var swallowItem in copy.swallows.Values)
+                            {
+                                Game.Instance.RemoveElementNode(swallowItem.node);
+                                
+                            }
+                            Game.Instance.RemoveElementNode(copy.node);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            //for (int i = steps.Count - 1; i >= 0; i--)
+            //{
+            //    Step step = steps[i];
+            //    RemoveElement(step.e);
+            //    SetElement(step.e, step.from.X, step.from.Y);
+
+            //    if (step.intoGate)
+            //    {
+            //        gateData.Remove(step.gate);
+            //    }
+            //    if (step.outGate)
+            //    {
+            //        gateData[step.gate] = step.e;
+            //    }
+            //}
+        }
+    }
+
+    public static MoveResult CheckGateAround(GameMap gameMap, Element gate, char gateChar, Element e, DIR? specDir = null)
+    {
+        GD.Print($"check gate:{gateChar} specDir?:{specDir}");
+        foreach (var dir in Enum.GetValues<DIR>())
+        {
+            if ((specDir == null || specDir == dir) && gate.GetGate(dir) == gateChar)
+            {
+                Vector2I pos = gameMap.GetElementPos(gate);
+                var nextPos = pos.NextPos(dir);
+                if (!gameMap.InMapArea(nextPos) || gameMap.GetElement(nextPos) != null) continue;
+
+                var step = new Step(e, pos, pos.NextPos(dir), false, true, gate, dir);
+                return new MoveResult(true, new List<List<Step>> { new List<Step> { step } }, null);
             }
         }
         return new MoveResult(false);
@@ -158,7 +274,7 @@ public partial class GameLogic : RefCounted
                 var index = IndexOf(gate, boxElements);
                 moveResult.steps.steps.Add(new List<Step>(boxElements.Take(index + 1))
                 {
-                    new Step(swallowEle, swallowPos, swallowPos, true, false, gateChar)
+                    new Step(swallowEle, swallowPos, swallowPos, true, false, gate, gateDir)
                 });
             }
             else
@@ -167,13 +283,15 @@ public partial class GameLogic : RefCounted
                 if (index < 0) // push all e into wall
                 {
                     boxElements.Last().intoGate = true;
-                    boxElements.Last().gate = gateChar;
+                    boxElements.Last().gateElement = gate;
+                    boxElements.Last().gateDIR = gateDir;
                     moveResult.steps.steps.Add(boxElements);
                 }
                 else
                 {
                     boxElements[index - 1].intoGate = true;
-                    boxElements[index - 1].gate = gateChar;
+                    boxElements[index - 1].gateElement = gate;
+                    boxElements[index - 1].gateDIR = gateDir;
                     moveResult.steps.steps.Add(new List<Step>(boxElements.Take(index)));
                 }
             }

@@ -11,6 +11,18 @@ public static partial class Utils
     }
 #nullable disable
 
+    public static void Merge<TK, TV>(this IDictionary<TK, TV> dict, IDictionary<TK, TV> other)
+    {
+        foreach (var item in other)
+        {
+            dict.Add(item.Key, item.Value);
+        }
+    }
+    public static void Map<TSource>(this IEnumerable<TSource> source, Action<TSource> mapper)
+    {
+        foreach (var t in source) mapper.Invoke(t);
+    }
+
     public static Vector2I NextPos(this Vector2I pos, int dx, int dy)
     {
         return new Vector2I(pos.X + dx, pos.Y + dy);
@@ -50,16 +62,19 @@ public static partial class Utils
             if (dy == 1)
             {
                 return DIR.DOWN;
-            } else
+            }
+            else
             {
                 return DIR.UP;
             }
-        } else
+        }
+        else
         {
             if (dx == 1)
             {
                 return DIR.RIGHT;
-            } else
+            }
+            else
             {
                 return DIR.LEFT;
             }
