@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://bq5p5fd5igc6f"]
+
+[ext_resource type="Script" path="res://node/ElementNode.cs" id="1_j5e2c"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_j5e2c")
+
+[node name="Element" type="Sprite2D" parent="."]
+
+[node name="UP" type="Sprite2D" parent="."]
+
+[node name="DOWN" type="Sprite2D" parent="."]
+
+[node name="LEFT" type="Sprite2D" parent="."]
+
+[node name="RIGHT" type="Sprite2D" parent="."]
