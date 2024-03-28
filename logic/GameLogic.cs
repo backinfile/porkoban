@@ -189,7 +189,13 @@ public partial class GameLogic : RefCounted
                     }
                     foreach (var e in map.FindGateElements(gateChar, step.gateElement))
                     {
-                        e.swallows[gateChar] = step.e.MakeCopy();
+                        List<DIR> DIRs = e.GetDIRByGate(gateChar);
+                        if (DIRs.Count > 0)
+                        {
+                            Element copy = step.e.MakeCopy();
+                            copy.Rotate(step.gateDIR, DIRs.FirstOrDefault());
+                            e.swallows[gateChar] = copy;
+                        }
                         foreach (var dir in e.GetDIRByGate(gateChar))
                         {
                             checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(e, dir));

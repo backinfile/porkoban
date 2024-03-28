@@ -27,8 +27,9 @@ public partial class ElementNode : Node2D
         node.GetNode<Sprite2D>("Element").Texture = Res.GetImageTexture(element.type);
         if (assign) element.node = node;
 
-        foreach (var dir in Enum.GetValues<DIR>())
+        foreach (var d in Enum.GetValues<DIR>())
         {
+            var dir = (DIR) element.GetSlot(d);
             Sprite2D sprite2D = node.GetNode<Sprite2D>(dir.ToString());
             sprite2D.Texture = Res.GetImageTexture(dir);
             if (element.GetGate(dir) != ' ')
