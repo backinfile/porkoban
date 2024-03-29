@@ -48,37 +48,40 @@ public partial class GameLogic : RefCounted
                 var pair = checkGateFirstQueue.Dequeue();
                 var e = pair.Key;
                 var dir = pair.Value;
-                GD.Print($"check {e.ToFullString()} {dir}");
+                //GD.Print($"check {e.ToFullString()} {dir}");
                 if (PushLogic.GetStepsByLeaveGate(gameMap, e, dir, out var steps))
                 {
+                    GD.Print($"GetStepsByLeaveGate {string.Join(",", steps)}");
                     moved = true;
                     await DoMove(gameMap, steps);
                 }
             }
 
-            foreach (var e in checkGateOrderStack.Concat(gameMap.boxData.Keys))
+            foreach (var e in new List<Element>(checkGateOrderStack).Concat(gameMap.boxData.Keys))
             {
                 if (moved) break; // check for next gate
                 if (e.swallow == null) continue;
-                GD.Print($"check {e.ToFullString()}");
+                //GD.Print($"check {e.ToFullString()}");
                 foreach (var dir in Enum.GetValues<DIR>())
                 {
                     if (PushLogic.GetStepsByLeaveGate(gameMap, e, dir, out var steps))
                     {
+                        GD.Print($"GetStepsByLeaveGate2 {string.Join(",", steps)}");
                         moved = true;
                         await DoMove(gameMap, steps);
                     }
                 }
             }
             if (!moved) break; // move finish
+            GD.Print("Leave gate move");
         }
         checkGateFirstQueue.Clear();
     }
 
     public static async Task DoMove(GameMap gameMap, List<Step> steps)
     {
-        ApplyStep(gameMap, steps);
-        await RenderLogic.UpdateGameMap(gameMap);
+        List<Element> removed = ApplyStep(gameMap, steps);
+        await RenderLogic.UpdateGameMap(gameMap, removed);
     }
 
     private static List<Element> ApplyStep(GameMap gameMap, List<Step> steps)
@@ -129,9 +132,9 @@ public partial class GameLogic : RefCounted
                     }
                 case StepType.LeaveAndEnter:
                     {
-                        gameMap.AddElement(step.Element);
 
                         {
+                            gameMap.AddElement(step.Element);
                             char gateChar = step.Gate.GetGate(step.DIR);
                             step.Gate.swallow = null;
                             step.Gate.swallowGate = ' ';
@@ -146,6 +149,7 @@ public partial class GameLogic : RefCounted
                         }
 
                         {
+                            gameMap.RemoveElement(step.Element);
                             char secondGateChar = step.GateSecond.GetGate(step.DIR.Opposite());
                             step.GateSecond.swallow = step.Element;
                             step.GateSecond.swallowGate = secondGateChar;

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 public partial class PushLogic : RefCounted
@@ -53,6 +54,7 @@ public partial class PushLogic : RefCounted
         var source = gate.swallow;
         if (source == null) return false;
         if (gate.GetGate(dir) != gate.swallowGate) return false;
+        if (!gameMap.boxData.ContainsKey(gate)) return false;
         var gatePos = gate.Position;
 
         var nextPos = gatePos.NextPos(dir);
