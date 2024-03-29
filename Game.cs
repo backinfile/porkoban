@@ -7,11 +7,11 @@ using System.Threading.Tasks.Dataflow;
 public partial class Game : Node
 {
     public static Game Instance { get; private set; }
-    public static GameMap gameMap { get; private set; }
+    public static GameMap gameMap { get; internal set; }
     private static Vector2 viewport_size;
 
 
-    public override void _Ready()
+    public override async void _Ready()
     {
         Instance = this;
         viewport_size = GetViewport().GetVisibleRect().Size with { };
@@ -19,11 +19,21 @@ public partial class Game : Node
 
         //Element element = new Element("B    ");
         //GetNode("World").AddChild(ElementNode.CreateElementNode(element, 100));
-        Restart();
+        await Restart();
     }
 
-    public void Restart()
+    public async Task Restart()
     {
+        if (GameLogic.IsMoving)
+        {
+            GameLogic.IsMoving = false;
+            await Wait(RenderLogic.MOVE_INTERVAL * 2);
+        }
+        else if (gameMap != null)
+        {
+            GameLogic.history.Push(gameMap.MakeCopy());
+        }
+
         GameLogic.Clear();
         Game.gameMap = null;
 
@@ -37,6 +47,24 @@ public partial class Game : Node
         RenderLogic.RefreshRender(gameMap);
     }
 
+    public async Task PlayBack()
+    {
+        if (GameLogic.IsMoving)
+        {
+            GameLogic.IsMoving = false;
+            await Game.Instance.Wait(RenderLogic.MOVE_INTERVAL * 2);
+        }
+
+        if (GameLogic.history.Count > 0)
+        {
+            GD.Print("take out history");
+            GameMap gameMap = GameLogic.history.Pop();
+            Game.gameMap = gameMap;
+            RenderLogic.RefreshRender(gameMap);
+        }
+
+    }
+
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override async void _Process(double delta)
     {
@@ -45,11 +73,11 @@ public partial class Game : Node
 
         if (Input.IsActionJustPressed("restart"))
         {
-            Restart();
+            await Restart();
         }
         else if (Input.IsActionJustPressed("back"))
         {
-            GameLogic.PlayBack();
+            await PlayBack();
         }
         else if (Input.IsActionJustPressed("move_left"))
         {
@@ -70,7 +98,10 @@ public partial class Game : Node
 
         if (dx != 0 || dy != 0)
         {
-            await GameLogic.Move(dx, dy);
+            if (!GameLogic.IsMoving)
+            {
+                await GameLogic.Move(dx, dy);
+            }
         }
     }
 
@@ -78,7 +109,7 @@ public partial class Game : Node
     {
         await ToSignal(GetTree().CreateTimer(time), "timeout");
     }
-   
+
 
 
     public void AddElementNode(Node node)

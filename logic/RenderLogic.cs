@@ -21,9 +21,6 @@ public partial class RenderLogic : Node
                     Game.Instance.RemoveElementNode(node);
                 }
             }
-            Game.Instance.SetProcess(false);
-            await Game.Instance.Wait(MOVE_INTERVAL);
-            Game.Instance.SetProcess(true);
         }
 
         //RefreshRender(map);
@@ -32,9 +29,7 @@ public partial class RenderLogic : Node
             MoveRe(map, e);
         }
 
-        Game.Instance.SetProcess(false);
         await Game.Instance.Wait(MOVE_INTERVAL);
-        Game.Instance.SetProcess(true);
 
         foreach (var e in map.boxData.Keys)
         {
@@ -49,8 +44,8 @@ public partial class RenderLogic : Node
         if (node != null)
         {
             var tween = node.CreateTween();
-            tween.TweenProperty(node, "position", Game.CalcNodePosition(gameMap, e.Position), MOVE_INTERVAL);
-            tween.TweenProperty(node, "scale", Res.Scale_Normal * Mathf.Pow(Res.Scale_Swallow_f, layer), MOVE_INTERVAL);
+            tween.Parallel().TweenProperty(node, "position", Game.CalcNodePosition(gameMap, e.Position), MOVE_INTERVAL);
+            tween.Parallel().TweenProperty(node, "scale", Res.Scale_Normal * Mathf.Pow(Res.Scale_Swallow_f, layer), MOVE_INTERVAL);
             node.ZIndex = (layer == 0) ? Res.Z_Ground : (Res.Z_Swallow + layer);
         }
         MoveRe(gameMap, e.swallow, layer + 1);

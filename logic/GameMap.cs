@@ -102,8 +102,14 @@ public partial class GameMap : RefCounted
             width = width,
             height = height
         };
-        copy.boxData.Merge(boxData);
-        copy.floorData.Merge(boxData);
+        foreach(var e in boxData.Keys)
+        {
+            copy.boxData[e.MakeCopy()] = true;
+        }
+        foreach (var e in floorData.Keys)
+        {
+            copy.floorData[e.MakeCopy()] = true;
+        }
         return copy;
     }
 

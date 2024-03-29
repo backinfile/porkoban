@@ -7,7 +7,11 @@ using System.Threading.Tasks;
 
 public partial class GameLogic : RefCounted
 {
-    public static readonly Stack<StepGroup> history = new();
+    public static bool IsMoving { get; set; } = false;
+
+
+    public static readonly Stack<GameMap> history = new();
+    private static bool hasMoveStepThisMove = false;
 
     private static readonly Queue<KeyValuePair<Element, DIR>> checkGateFirstQueue = new();
     private static readonly List<Element> checkGateOrderStack = new();
@@ -19,8 +23,10 @@ public partial class GameLogic : RefCounted
 
     public static async Task Move(int dx, int dy)
     {
+        IsMoving = true;
         var gameMap = Game.gameMap;
         GD.Print($"Move {dx}, {dy}");
+        hasMoveStepThisMove = false;
 
         { // move player
             var dir = Utils.GetDirection(dx, dy);
@@ -39,7 +45,7 @@ public partial class GameLogic : RefCounted
         }
 
         //GD.Print($"checkGateFirstQueue = {string.Join("", checkGateFirstQueue.Select(e => e.Key.ToFullString()))}");
-        while (true)
+        while (true && IsMoving)
         {
             bool moved = false;
 
@@ -51,13 +57,13 @@ public partial class GameLogic : RefCounted
                 //GD.Print($"check {e.ToFullString()} {dir}");
                 if (PushLogic.GetStepsByLeaveGate(gameMap, e, dir, out var steps))
                 {
-                    GD.Print($"GetStepsByLeaveGate {string.Join(",", steps)}");
+                    GD.Print($"GetStepsByLeaveGate1 {string.Join(",", steps)}");
                     moved = true;
                     await DoMove(gameMap, steps);
                 }
             }
 
-            foreach (var e in new List<Element>(checkGateOrderStack).Concat(gameMap.boxData.Keys))
+            foreach (var e in new List<Element>(checkGateOrderStack))
             {
                 if (moved) break; // check for next gate
                 if (e.swallow == null) continue;
@@ -72,14 +78,36 @@ public partial class GameLogic : RefCounted
                     }
                 }
             }
+            foreach (var e in new List<Element>(gameMap.boxData.Keys))
+            {
+                if (moved) break; // check for next gate
+                if (e.swallow == null) continue;
+                //GD.Print($"check {e.ToFullString()}");
+                foreach (var dir in Enum.GetValues<DIR>())
+                {
+                    if (PushLogic.GetStepsByLeaveGate(gameMap, e, dir, out var steps))
+                    {
+                        GD.Print($"GetStepsByLeaveGate3 {string.Join(",", steps)}");
+                        moved = true;
+                        await DoMove(gameMap, steps);
+                    }
+                }
+            }
             if (!moved) break; // move finish
             GD.Print("Leave gate move");
         }
         checkGateFirstQueue.Clear();
+        IsMoving = false;
     }
 
     public static async Task DoMove(GameMap gameMap, List<Step> steps)
     {
+        if (!hasMoveStepThisMove)
+        {
+            hasMoveStepThisMove = true;
+            history.Push(gameMap.MakeCopy());
+            GD.Print("save history");
+        }
         List<Element> removed = ApplyStep(gameMap, steps);
         await RenderLogic.UpdateGameMap(gameMap, removed);
     }
@@ -179,9 +207,7 @@ public partial class GameLogic : RefCounted
         SetPositionRe(element.swallow, pos);
     }
 
-    public static void PlayBack()
-    {
-    }
+    
 }
 
 
