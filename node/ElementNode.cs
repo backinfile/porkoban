@@ -18,18 +18,16 @@ public partial class ElementNode : Node2D
 
     private Element element;
 
-    public static ElementNode CreateElementNode(Element element, float x = 0f, float y = 0f, bool assign = true)
+    public static ElementNode CreateElementNode(Element element, float x = 0f, float y = 0f)
     {
-        GD.Print($"create elementNode {element.type} {x} {y}");
+        //GD.Print($"create elementNode {element.Type} {x} {y}");
         ElementNode node = element_object.Instantiate<ElementNode>();
         node.element = element;
         node.Position = node.Position with { X = x, Y = y };
-        node.GetNode<Sprite2D>("Element").Texture = Res.GetImageTexture(element.type);
-        if (assign) element.node = node;
+        node.GetNode<Sprite2D>("Element").Texture = Res.GetImageTexture(element.Type);
 
-        foreach (var d in Enum.GetValues<DIR>())
+        foreach (var dir in Enum.GetValues<DIR>())
         {
-            var dir = (DIR) element.GetSlot(d);
             Sprite2D sprite2D = node.GetNode<Sprite2D>(dir.ToString());
             sprite2D.Texture = Res.GetImageTexture(dir);
             if (element.GetGate(dir) != ' ')
@@ -42,10 +40,11 @@ public partial class ElementNode : Node2D
             }
         }
 
-        if (element.type == Type.Target)
+        if (element.Type == Type.Target)
         {
             node.ZIndex = Res.Z_Target;
-        } else
+        }
+        else
         {
             node.ZIndex = Res.Z_Ground;
         }
@@ -60,7 +59,7 @@ public partial class ElementNode : Node2D
 
     public ElementNode MakeCopy()
     {
-        return CreateElementNode(element, Position.X, Position.Y, false);
+        return CreateElementNode(element, Position.X, Position.Y);
     }
 
     public override void _Ready()

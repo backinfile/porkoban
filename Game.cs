@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 public partial class Game : Node
 {
@@ -27,13 +28,13 @@ public partial class Game : Node
         Game.gameMap = null;
 
 
-        GameMap gameMap = GameMap.ParseFile(Path.GetDirectoryName(OS.GetExecutablePath()) + "/level1.json");
+        gameMap = GameMap.ParseFile(Path.GetDirectoryName(OS.GetExecutablePath()) + "/level1.json");
         if (gameMap == null)
         {
             gameMap = GameMap.ParseFile("res://mapResource/level1.json");
         }
-        GD.Print(gameMap.boxData);
-        LoadGameMap(gameMap);
+        GD.Print(gameMap.boxData.Count);
+        RenderLogic.RefreshRender(gameMap);
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -79,37 +80,6 @@ public partial class Game : Node
     }
    
 
-    public void LoadGameMap(GameMap gameMap)
-    {
-        Game.gameMap = gameMap;
-        Node world = GetNode("World");
-        foreach (var node in world.GetChildren())
-        {
-            world.RemoveChild(node);
-            node.QueueFree();
-        }
-
-        { // add background
-            Vector2 startPosition = CalcNodePosition(gameMap);
-            var background = new ColorRect();
-            background.Color = Colors.LightGray;
-            background.Position = new Vector2(startPosition.X - ElementNode.Element_Size / 2.0f, startPosition.Y - ElementNode.Element_Size / 2.0f);
-            background.Size = new Vector2(gameMap.width * (ElementNode.Element_Size + ElementNode.Element_Gap), gameMap.height * (ElementNode.Element_Size + ElementNode.Element_Gap));
-            background.ZIndex = Res.Z_Background;
-            world.AddChild(background);
-        }
-
-        foreach (var pair in gameMap.floorData)
-        {
-            ElementNode node = ElementNode.CreateElementNode(pair.Value, CalcNodePosition(gameMap, gameMap.GetElementPos(pair.Value)));
-            AddElementNode(node);
-        }
-        foreach (var pair in gameMap.boxData)
-        {
-            ElementNode node = ElementNode.CreateElementNode(pair.Value, CalcNodePosition(gameMap, gameMap.GetElementPos(pair.Value)));
-            AddElementNode(node);
-        }
-    }
 
     public void AddElementNode(Node node)
     {

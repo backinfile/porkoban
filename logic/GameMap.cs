@@ -8,41 +8,64 @@ public partial class GameMap : RefCounted
 {
     public int width = 1;
     public int height = 1;
-    public readonly Dictionary<int, Element> boxData = new();
-    public readonly Dictionary<int, Element> floorData = new();
+    public readonly Dictionary<Element, bool> boxData = new();
+    public readonly Dictionary<Element, bool> floorData = new();
 
-    private const int FACTOR = 1000;
+    private GameMap() { }
 
-#nullable enable
-    public Element? GetElement(int x, int y)
+    #region element getter and setter
+    public Element GetElement(int x, int y)
     {
-        return boxData.GetValue(x * FACTOR + y);
+        foreach (var element in boxData.Keys)
+        {
+            if (element.X == x && element.Y == y)
+            {
+                return element;
+            }
+        }
+        return null;
     }
-    public Element? GetElement(Vector2I pos)
+
+    public Element GetElement(Vector2I pos)
     {
         return GetElement(pos.X, pos.Y);
     }
-    public Element? GetFloorElement(int x, int y)
+    public Element GetFloorElement(int x, int y)
     {
-        return floorData.GetValue(x * FACTOR + y);
+        foreach (var element in floorData.Keys)
+        {
+            if (element.X == x && element.Y == y)
+            {
+                return element;
+            }
+        }
+        return null;
     }
-    public Element? GetFloorElement(Vector2I pos)
+    public Element GetFloorElement(Vector2I pos)
     {
         return GetFloorElement(pos.X, pos.Y);
     }
 
-#nullable disable
 
-
-    public void SetElement(Element e, int x, int y)
+    public void AddElement(Element e)
     {
-        boxData[x * FACTOR + y] = e;
+        boxData[e] = true;
     }
 
-    public void SetFloorElement(Element e, int x, int y)
+    public void AddFloorElement(Element e)
     {
-        floorData[x * FACTOR + y] = e;
+        floorData[e] = true;
     }
+
+
+    public void RemoveElement(Element e)
+    {
+        boxData.Remove(e);
+        floorData.Remove(e);
+    }
+
+    #endregion
+
 
     public bool InMapArea(int x, int y)
     {
@@ -57,95 +80,41 @@ public partial class GameMap : RefCounted
     {
         if (!InMapArea(x, y)) return true;
         var e = GetElement(x, y);
-        if (e != null && e.type == Type.Wall) return true;
+        if (e != null && e.Type == Type.Wall) return true;
         return false;
-    }
-
-    // element full, cannot swallow
-    public bool IsGateFull(Element e)
-    {
-        return e.swallows.Count > 0;
     }
 
     public List<Element> FindGateElements(char gate, Element except = null)
     {
-        var list = new List<Element>();
-        foreach (var pair in boxData)
-        {
-            if (pair.Value != except && pair.Value.gate.Contains(gate))
-            {
-                list.Add(pair.Value);
-            }
-        }
-        return list;
+        return boxData.Keys.Where(e => e != except && e.ContainsGate(gate)).ToList();
     }
 
-    public Vector2I GetElementPos(Element e)
-    {
-        foreach (var pair in boxData)
-        {
-            if (pair.Value == e) return new Vector2I(pair.Key / FACTOR, pair.Key % FACTOR);
-        }
-        foreach (var pair in floorData)
-        {
-            if (pair.Value == e) return new Vector2I(pair.Key / FACTOR, pair.Key % FACTOR);
-        }
-        return new Vector2I(-1, -1);
-    }
 
-    public void RemoveElement(Element e)
+    public List<Element> GetPlayers()
     {
-        foreach (var pair in boxData)
-        {
-            if (pair.Value == e)
-            {
-                boxData.Remove(pair.Key);
-                break;
-            }
-        }
-        foreach (var pair in floorData)
-        {
-            if (pair.Value == e)
-            {
-                boxData.Remove(pair.Key);
-                break;
-            }
-        }
-    }
-
-    public Element GetPlayer()
-    {
-        foreach (var pair in boxData)
-        {
-            if (pair.Value.type == Type.Player)
-            {
-                return pair.Value;
-            }
-        }
-        return null;
+        return boxData.Keys.Where(e => e.Type == Type.Player).ToList();
     }
 
     public GameMap MakeCopy()
     {
-        //var copy = new GameMap();
-        //copy.width = width;
-        //copy.height = height;
-        //copy.boxData.Merge(boxData);
-        //copy.floorData.Merge(boxData);
-        //copy.gateData.Merge(gateData);
-        //return copy;
-        throw new NotImplementedException();
+        var copy = new GameMap
+        {
+            width = width,
+            height = height
+        };
+        copy.boxData.Merge(boxData);
+        copy.floorData.Merge(boxData);
+        return copy;
     }
 
     public bool IsGameOver()
     {
-
-        foreach (var pair in floorData)
+        foreach (var target in floorData.Keys)
         {
-            if (pair.Value.type == Type.Target)
+            if (target.Type == Type.Target)
             {
-                Element element = boxData.GetValue(pair.Key);
-                if (element != null && element.type == Type.Box)
+                Element element = GetElement(target.Position);
+                if (element == null || element.Type != Type.Box)
                 {
                     return false;
                 }
@@ -174,13 +143,13 @@ public partial class GameMap : RefCounted
         {
             string typeStr = boxData[i];
             if (typeStr.Length == 0 || typeStr[0] == ' ') continue;
-            map.SetElement(new Element(typeStr), i % width, i / width);
+            map.AddElement(Element.Create(typeStr, i % width, i / width));
         }
         for (int i = 0; i < floorData.Length; i++)
         {
             string typeStr = floorData[i];
             if (typeStr.Length == 0 || typeStr[0] == ' ') continue;
-            map.SetFloorElement(new Element(typeStr), i % width, i / width);
+            map.AddFloorElement(Element.Create(typeStr, i % width, i / width));
         }
         return map;
     }

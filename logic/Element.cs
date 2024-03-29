@@ -1,26 +1,50 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public partial class Element : RefCounted
 {
-    public Type type = Type.None;
-    public Side[] side = { Side.None, Side.None, Side.None, Side.None }; // up down left right
-    public char[] gate = { ' ', ' ', ' ', ' ' }; // use non UpperCase
-    public int Rotation { get; private set; }
+    public int X { get; set; }
+    public int Y { get; set; }
+    public Vector2I Position { get => new(X, Y); set { X = value.X; Y = value.Y; } }
 
-    public ElementNode node = null;
-    public Dictionary<char, Element> swallows = new();
+    public Type Type { get; private set; } = Type.None;
+    private Side[] side = { Side.None, Side.None, Side.None, Side.None }; // up down left right
+    private char[] gate = { ' ', ' ', ' ', ' ' }; // use non UpperCase
 
-    public Element(string typeStr)
+    public Element swallow = null;
+    public char swallowGate = ' ';
+
+    private Element()
     {
+    }
+
+    public Element MakeCopy()
+    {
+        var copy = new Element
+        {
+            Type = Type,
+            Position = Position,
+            side = (Side[])side.Clone(),
+            gate = (char[])gate.Clone(),
+            swallow = swallow,
+            swallowGate = swallowGate,
+        };
+        return copy;
+    }
+    public static Element Create(string typeStr, int x = -1, int y = -1)
+    {
+        var element = new Element();
+        element.X = x;
+        element.Y = y;
         if (typeStr.Length >= 1)
         {
             foreach (Type type in Enum.GetValues<Type>())
             {
                 if ((char)type == typeStr[0])
                 {
-                    this.type = type;
+                    element.Type = type;
                     break;
                 }
             }
@@ -33,72 +57,85 @@ public partial class Element : RefCounted
                     {
                         if ((char)side == sideChar)
                         {
-                            this.side[i] = side;
+                            element.side[i] = side;
                             break;
                         }
                     }
-                    if (this.side[i] == Side.None)
+                    if (element.side[i] == Side.None)
                     {
-                        this.side[i] = Side.Gate;
-                        this.gate[i] = sideChar;
+                        element.side[i] = Side.Gate;
+                        element.gate[i] = sideChar;
                     }
                 }
             }
         }
-    }
-
-    private Element()
-    {
-    }
-
-    public Element MakeCopy()
-    {
-        var copy = new Element
-        {
-            type = type,
-            side = (Side[])side.Clone(),
-            gate = (char[])gate.Clone(),
-            Rotation = Rotation,
-        };
-        foreach(var item in this.swallows)
-        {
-            copy.swallows[item.Key] = item.Value.MakeCopy();
-        }
-        return copy;
+        return element;
     }
 
     public void Rotate(DIR from, DIR to)
     {
-        this.Rotation = (this.Rotation + (int)to - (int)from + 4) % 4;
+        int Rotation = ((int)to - (int)from + 4) % 4;
+        var copySide = (Side[])side.Clone();
+        for (int i = 0; i < copySide.Length; i++)
+        {
+            side[(i + Rotation) % 4] = copySide[i];
+        }
+        var copyGate = (char[])gate.Clone();
+        for (int i = 0; i < copyGate.Length; i++)
+        {
+            gate[(i + Rotation) % 4] = copyGate[i];
+        }
+        swallow?.Rotate(from, to);
     }
-
-    public int GetSlot(DIR dir)
+    public bool ContainsGate(char gateChar)
     {
-        return (this.Rotation + (int)dir + 4) % 4;
+        return gate.Contains(gateChar);
+    }
+    public bool HasGate(DIR dir)
+    {
+        return GetGate(dir) != ' ';
     }
     public char GetGate(DIR dir)
     {
-        return this.gate[GetSlot(dir)];
+        return this.gate[(int)dir];
     }
     public Side GetSide(DIR dir)
     {
-        return this.side[GetSlot(dir)];
+        return this.side[(int)dir];
     }
 
     public List<DIR> GetDIRByGate(char gate, DIR? except = null)
     {
         List<DIR> dirList = new List<DIR>();
-        foreach(var dir in Enum.GetValues<DIR>())
+        foreach (var dir in Enum.GetValues<DIR>())
         {
             if (dir != except && GetGate(dir) == gate) dirList.Add(dir);
         }
         return dirList;
     }
 
+    public bool IsFloorElement()
+    {
+        return this.Type == Type.Target;
+    }
+    public bool CanSwallowOther(DIR dir)
+    {
+        return swallow == null && HasGate(dir); 
+    }
+    public bool CanEnterFrom(DIR dir)
+    {
+        return swallow == null && HasGate(dir.Opposite());
+    }
+
     public override string ToString()
     {
-        string gateStr = "" + gate[Rotation] + gate[(Rotation + 1) % 4] + gate[(Rotation + 2) % 4] + gate[(Rotation + 3) % 4];
-        return $"[{type} gate:{gateStr}]";
+        //return $"({Type} gate:{string.Join("", gate)} {((swallow != null) ? "swallow" : "")})";
+        return Type.ToString();
+    }
+
+    public string ToFullString()
+    {
+        return $"({Type} {X},{Y} gate:{string.Join("", gate)} {((swallow != null) ? "swallow" : "")})";
     }
 }
 

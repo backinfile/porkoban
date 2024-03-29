@@ -4,35 +4,77 @@ using System.Linq;
 
 public partial class Step : RefCounted
 {
-    public readonly Element e;
-    public readonly Vector2I from;
-    public readonly Vector2I to;
-    public bool intoGate = false;
-    public bool outGate = false;
-    public Element gateElement = null;
-    public DIR gateDIR = DIR.LEFT;
+    public readonly StepType StepType;
+    public Element Element { get; private set; }
+    public Vector2I From { get; private set; }
+    public Vector2I To { get; private set; }
+    public DIR DIR { get; private set; } = DIR.LEFT; // move direction
+    public Element Gate { get; private set; } = null;
+    public Element GateSecond { get; private set; } = null;
 
-    public Step(Element e, Vector2I from, Vector2I to, bool intoGate = false, bool outGate = false, Element gateElement = null, DIR gateDIR = default)
+    private Step(StepType stepType)
     {
-        this.e = e;
-        this.from = from;
-        this.to = to;
-        this.intoGate = intoGate;
-        this.outGate = outGate;
-        this.gateElement = gateElement;
-        this.gateDIR = gateDIR;
+        this.StepType = stepType;
     }
 
-    override public string ToString()
+    public static Step CreateNormal(Element element, DIR dir)
     {
-        string inOut = (intoGate ? "IN" : "") + (outGate ? "OUT" : "");
-        if (intoGate || outGate)
+        return new Step(StepType.Normal)
         {
-            inOut += " " + gateElement.GetGate(gateDIR);
-        }
-        return $"[{e.type}:{from}->{to} {inOut}]";
+            Element = element,
+            From = element.Position,
+            To = element.Position.NextPos(dir),
+            DIR = dir,
+        };
     }
 
+    public static Step CreateEnter(Element element, DIR dir, Element gate, bool move = true)
+    {
+        return new Step(StepType.Enter)
+        {
+            Element = element,
+            From = element.Position,
+            To = move ? element.Position.NextPos(dir) : element.Position,
+            DIR = dir,
+            Gate = gate,
+        };
+    }
+    public static Step CreateLeave(Element element, DIR dir, Element gate, bool move = true)
+    {
+        return new Step(StepType.Leave)
+        {
+            Element = element,
+            From = element.Position,
+            To = move ? element.Position.NextPos(dir) : element.Position,
+            DIR = dir,
+            Gate = gate,
+        };
+    }
+    public static Step CreateLeaveAndEnter(Element element, DIR dir, Element gate, Element secondGate)
+    {
+        return new Step(StepType.LeaveAndEnter)
+        {
+            Element = element,
+            From = element.Position,
+            To = element.Position.NextPos(dir),
+            DIR = dir,
+            Gate = gate,
+            GateSecond = secondGate,
+        };
+    }
+
+    public override string ToString()
+    {
+        return $"[{StepType} {Element}: {From}=>{To}]";
+    }
+}
+
+public enum StepType
+{
+    Normal,
+    Enter,
+    Leave,
+    LeaveAndEnter,
 }
 
 public class StepGroup
@@ -51,7 +93,7 @@ public class StepGroup
 public class MoveResult
 {
     public bool moveSuccess = false;
-    public StepGroup steps = new ();
+    public StepGroup steps = new();
     public List<Step> stepsShake = new List<Step>();
 
     public MoveResult(bool moveSuccess)
