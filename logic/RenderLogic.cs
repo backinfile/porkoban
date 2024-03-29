@@ -12,7 +12,10 @@ public partial class RenderLogic : Node
     public static async Task UpdateGameMap(GameMap map)
     {
         RefreshRender(map);
+
+        Game.Instance.SetProcess(false);
         await Game.Instance.Wait(MOVE_INTERVAL);
+        Game.Instance.SetProcess(true);
     }
 
     public static void RefreshRender(GameMap gameMap)

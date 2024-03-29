@@ -13,6 +13,8 @@ public partial class GameLogic : RefCounted
     private static readonly List<Element> checkGateOrderStack = new();
     public static void Clear()
     {
+        checkGateFirstQueue.Clear();
+        checkGateOrderStack.Clear();
     }
 
     public static async Task Move(int dx, int dy)
@@ -36,7 +38,7 @@ public partial class GameLogic : RefCounted
             }
         }
 
-        GD.Print($"checkGateFirstQueue = {string.Join("", checkGateFirstQueue.Select(e=>e.Key.ToFullString()))}");
+        //GD.Print($"checkGateFirstQueue = {string.Join("", checkGateFirstQueue.Select(e => e.Key.ToFullString()))}");
         while (true)
         {
             bool moved = false;
@@ -99,11 +101,13 @@ public partial class GameLogic : RefCounted
                         foreach (var e in gameMap.FindGateElements(gateChar, step.Gate))
                         {
                             e.swallow = step.Element.MakeCopy();
+                            e.swallow.Rotate(step.DIR, e.GetDIRByGate(gateChar)[0]);
                             e.swallow.Position = e.Position;
                             e.swallowGate = gateChar;
                             foreach (var dir in e.GetDIRByGate(gateChar)) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(e, dir));
                             if (!checkGateOrderStack.Contains(e)) checkGateOrderStack.Add(e);
                         }
+                        foreach (var dir in step.Gate.GetDIRByGate(gateChar, step.DIR.Opposite())) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(step.Gate, dir));
                         if (!checkGateOrderStack.Contains(step.Gate)) checkGateOrderStack.Add(step.Gate);
                         break;
                     }
@@ -126,30 +130,37 @@ public partial class GameLogic : RefCounted
                 case StepType.LeaveAndEnter:
                     {
                         gameMap.AddElement(step.Element);
-                        char gateChar = step.Gate.GetGate(step.DIR);
-                        step.Gate.swallow = null;
-                        step.Gate.swallowGate = ' ';
-                        foreach (var e in gameMap.FindGateElements(gateChar, step.Gate))
-                        {
-                            if (e.swallow != null) removed.Add(e.swallow);
-                            e.swallow = null;
-                            e.swallowGate = ' ';
-                            checkGateOrderStack.Remove(e);
-                        }
-                        checkGateOrderStack.Remove(step.Gate);
 
-                        char secondGateChar = step.GateSecond.GetGate(step.DIR.Opposite());
-                        step.GateSecond.swallow = step.Element;
-                        step.GateSecond.swallowGate = secondGateChar;
-                        foreach (var e in gameMap.FindGateElements(secondGateChar, step.GateSecond))
                         {
-                            e.swallow = step.Element.MakeCopy();
-                            e.swallow.Position = e.Position;
-                            e.swallowGate = secondGateChar;
-                            foreach (var dir in e.GetDIRByGate(gateChar)) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(e, dir));
-                            if (!checkGateOrderStack.Contains(e)) checkGateOrderStack.Add(e);
+                            char gateChar = step.Gate.GetGate(step.DIR);
+                            step.Gate.swallow = null;
+                            step.Gate.swallowGate = ' ';
+                            foreach (var e in gameMap.FindGateElements(gateChar, step.Gate))
+                            {
+                                if (e.swallow != null) removed.Add(e.swallow);
+                                e.swallow = null;
+                                e.swallowGate = ' ';
+                                checkGateOrderStack.Remove(e);
+                            }
+                            checkGateOrderStack.Remove(step.Gate);
                         }
-                        if (!checkGateOrderStack.Contains(step.GateSecond)) checkGateOrderStack.Add(step.GateSecond);
+
+                        {
+                            char secondGateChar = step.GateSecond.GetGate(step.DIR.Opposite());
+                            step.GateSecond.swallow = step.Element;
+                            step.GateSecond.swallowGate = secondGateChar;
+                            foreach (var e in gameMap.FindGateElements(secondGateChar, step.GateSecond))
+                            {
+                                e.swallow = step.Element.MakeCopy();
+                                e.swallow.Rotate(step.DIR, e.GetDIRByGate(secondGateChar)[0]);
+                                e.swallow.Position = e.Position;
+                                e.swallowGate = secondGateChar;
+                                foreach (var dir in e.GetDIRByGate(secondGateChar)) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(e, dir));
+                                if (!checkGateOrderStack.Contains(e)) checkGateOrderStack.Add(e);
+                            }
+                            foreach (var dir in step.GateSecond.GetDIRByGate(secondGateChar, step.DIR.Opposite())) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(step.GateSecond, dir));
+                            if (!checkGateOrderStack.Contains(step.GateSecond)) checkGateOrderStack.Add(step.GateSecond);
+                        }
                         break;
                     }
             }

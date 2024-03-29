@@ -106,7 +106,7 @@ public partial class PushLogic : RefCounted
             // move to empty pos (this branch cannot happen)
             if (e == null) return true;
             // stop move
-            if (e.Type == Type.Wall) return false;
+            if (e.Type == Type.Wall || e.Type == Type.Player) return false;
 
             var nextPos = pos.NextPos(dir);
             Element nextElement = gameMap.GetElement(nextPos);
@@ -116,7 +116,7 @@ public partial class PushLogic : RefCounted
             if (e != null && e.Type == Type.Box && e.CanSwallowOther(dir) && nextElement != null && nextElement.Type == Type.Box)
             {
                 steps.Add(Step.CreateNormal(e, dir));
-                steps.Add(Step.CreateEnter(e, dir.Opposite(), lastElement, move: false));
+                steps.Add(Step.CreateEnter(nextElement, dir.Opposite(), e, move: false));
                 return true;
             }
             // enter next

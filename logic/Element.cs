@@ -78,12 +78,12 @@ public partial class Element : RefCounted
         var copySide = (Side[])side.Clone();
         for (int i = 0; i < copySide.Length; i++)
         {
-            side[(i + Rotation) % 4] = copySide[i];
+            side[i] = copySide[(i + Rotation) % 4];
         }
         var copyGate = (char[])gate.Clone();
         for (int i = 0; i < copyGate.Length; i++)
         {
-            gate[(i + Rotation) % 4] = copyGate[i];
+            gate[i] = copyGate[(i + Rotation) % 4];
         }
         swallow?.Rotate(from, to);
     }
