@@ -113,7 +113,7 @@ public partial class RenderLogic : Node
         if (e.swallow != null) CreateElementNodeRe(gameMap, e.swallow, layer + 1);
     }
 
-    private static ElementNode GetElementNode(Element e, bool createIfNotExist = true)
+    public static ElementNode GetElementNode(Element e, bool createIfNotExist = true)
     {
         if (nodeMap.TryGetValue(e, out var node)) return node;
         if (createIfNotExist)

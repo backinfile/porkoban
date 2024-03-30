@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://bq5p5fd5igc6f"]
+[gd_scene load_steps=8 format=3 uid="uid://bq5p5fd5igc6f"]
 
 [ext_resource type="Script" path="res://node/ElementNode.cs" id="1_j5e2c"]
 [ext_resource type="Texture2D" uid="uid://dymxeyvecu5tw" path="res://image/player.png" id="2_np5ct"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://byyds2c11eptn" path="res://image/protal.png" id="4_o428u"]
 [ext_resource type="Texture2D" uid="uid://bm1um3k2n3x4o" path="res://image/wall.png" id="4_ungpw"]
 [ext_resource type="Texture2D" uid="uid://rprmthwtbcd4" path="res://image/target.png" id="5_cu8fb"]
+[ext_resource type="Texture2D" uid="uid://bc8mirk8s2ikk" path="res://image/empty.png" id="6_x4wub"]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_j5e2c")
@@ -13,16 +14,79 @@ PlayerTexture = ExtResource("2_np5ct")
 BoxTexture = ExtResource("3_aq2at")
 WallTexture = ExtResource("4_ungpw")
 TargetTexture = ExtResource("5_cu8fb")
+EmptyTexture = ExtResource("6_x4wub")
 GateTexture = ExtResource("4_o428u")
 
-[node name="Element" type="Sprite2D" parent="."]
-texture = ExtResource("3_aq2at")
+[node name="Element" type="TextureRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_np5ct")
 
-[node name="UP" type="Sprite2D" parent="."]
+[node name="UP" type="TextureRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 64.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(64, 64)
+texture = ExtResource("4_o428u")
 
-[node name="DOWN" type="Sprite2D" parent="."]
+[node name="DOWN" type="TextureRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(64, 64)
+texture = ExtResource("4_o428u")
 
-[node name="LEFT" type="Sprite2D" parent="."]
+[node name="LEFT" type="TextureRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(64, 64)
+texture = ExtResource("4_o428u")
 
-[node name="RIGHT" type="Sprite2D" parent="."]
+[node name="RIGHT" type="TextureRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(64, 64)
 texture = ExtResource("4_o428u")

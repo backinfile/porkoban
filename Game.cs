@@ -67,4 +67,19 @@ public partial class Game : Node
         GetNode("World").RemoveChild(node);
         node.QueueFree();
     }
+
+    public override void _Input(InputEvent @event)
+    {
+        base._Input(@event);
+        //if (@event is InputEventMouseButton e && e.Pressed && e.ButtonIndex == MouseButton.Left)
+        //{
+        //    GD.Print("click " + e.Position + "  " + e.GlobalPosition);
+        //    foreach (var box in GameLogic.gameMap.boxData.Keys)
+        //    {
+        //        ElementNode node = RenderLogic.GetElementNode(box);
+        //        GD.Print(node.GetLocalMousePosition());
+        //        GD.Print(node.GetLocalMousePosition());
+        //    }
+        //}
+    }
 }

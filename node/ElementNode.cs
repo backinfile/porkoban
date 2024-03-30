@@ -22,6 +22,8 @@ public partial class ElementNode : Node2D
     [Export]
     public Texture2D TargetTexture;
     [Export]
+    public Texture2D EmptyTexture;
+    [Export]
     public Texture2D GateTexture;
 
 
@@ -31,19 +33,19 @@ public partial class ElementNode : Node2D
         ElementNode node = element_object.Instantiate<ElementNode>();
         node.element = element;
         node.Position = node.Position with { X = x, Y = y };
-        Sprite2D mainSprite = node.GetNode<Sprite2D>("Element");
+        TextureRect mainSprite = node.GetNode<TextureRect>("Element");
         mainSprite.Texture = element.Type switch
         {
             Type.Player => node.PlayerTexture,
             Type.Box => node.BoxTexture,
             Type.Wall => node.WallTexture,
             Type.Target => node.TargetTexture,
-            _ => Res.GetImageTexture(element.Type)
+            _ => node.EmptyTexture,
         };
 
         foreach (var dir in Enum.GetValues<DIR>())
         {
-            Sprite2D sprite2D = node.GetNode<Sprite2D>(dir.ToString());
+            TextureRect sprite2D = node.GetNode<TextureRect>(dir.ToString());
             sprite2D.Texture = node.GateTexture;
             sprite2D.RotationDegrees = dir.ToRotation() - 90;
             if (element.GetGate(dir) != ' ')
@@ -64,7 +66,7 @@ public partial class ElementNode : Node2D
         {
             node.ZIndex = Res.Z_Ground;
         }
-        
+
 
 
         return node;
@@ -83,6 +85,14 @@ public partial class ElementNode : Node2D
 
     public override void _Ready()
     {
+        //GetNode<Area2D>("Area2D").InputEvent += (v, ev, i) =>
+        //{
+        //    GD.Print("detact on " + element.ToFullString());
+        //    if (ev is InputEventMouseButton e && e.ButtonIndex == MouseButton.Left && e.Pressed)
+        //    {
+        //        GD.Print("clicked on " + element.ToFullString());
+        //    }
+        //};
     }
 
     public override void _Process(double delta)
@@ -100,5 +110,4 @@ public partial class ElementNode : Node2D
         Random random = new(ch);
         return new Color((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
     }
-
 }
