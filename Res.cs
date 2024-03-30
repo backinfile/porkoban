@@ -8,7 +8,7 @@ public partial class Res : RefCounted
     public const int Z_Floor = 0;
     public const int Z_Ground = 10;
     public const int Z_Swallow = 20;
-    public const int Z_Target = 30;
+    public const int Z_Target = 100;
 
     public const float Scale_Swallow_f = 0.7f;
     public static readonly Vector2 Scale_Swallow = new(Scale_Swallow_f, Scale_Swallow_f);

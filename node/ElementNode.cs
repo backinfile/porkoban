@@ -8,6 +8,7 @@ public partial class ElementNode : Node2D
     public const int Element_Size = 64;
     public const int Element_Border_Size = 5;
     public const int Element_Gap = 0;
+    public const int Element_Unit_Size = Element_Size + Element_Gap;
     public static PackedScene element_object = GD.Load<PackedScene>("res://node/ElementNode.tscn");
 
     private Element element;
@@ -16,6 +17,10 @@ public partial class ElementNode : Node2D
     public Texture2D PlayerTexture;
     [Export]
     public Texture2D BoxTexture;
+    [Export]
+    public Texture2D WallTexture;
+    [Export]
+    public Texture2D TargetTexture;
     [Export]
     public Texture2D GateTexture;
 
@@ -27,16 +32,14 @@ public partial class ElementNode : Node2D
         node.element = element;
         node.Position = node.Position with { X = x, Y = y };
         Sprite2D mainSprite = node.GetNode<Sprite2D>("Element");
-        if (element.Type == Type.Player)
+        mainSprite.Texture = element.Type switch
         {
-            mainSprite.Texture = node.PlayerTexture;
-        } else if (element.Type == Type.Box)
-        {
-            mainSprite.Texture = node.BoxTexture;
-        } else
-        {
-            mainSprite.Texture = Res.GetImageTexture(element.Type);
-        }
+            Type.Player => node.PlayerTexture,
+            Type.Box => node.BoxTexture,
+            Type.Wall => node.WallTexture,
+            Type.Target => node.TargetTexture,
+            _ => Res.GetImageTexture(element.Type)
+        };
 
         foreach (var dir in Enum.GetValues<DIR>())
         {
@@ -61,6 +64,7 @@ public partial class ElementNode : Node2D
         {
             node.ZIndex = Res.Z_Ground;
         }
+        
 
 
         return node;

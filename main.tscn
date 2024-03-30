@@ -5,4 +5,136 @@
 [node name="Game" type="Node2D"]
 script = ExtResource("1_1o4nv")
 
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
+
 [node name="World" type="Node" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 217.0
+grow_vertical = 2
+
+[node name="TabContainer" type="TabContainer" parent="CanvasLayer/Control/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+tab_focus_mode = 1
+
+[node name="内置关卡" type="ItemList" parent="CanvasLayer/Control/VBoxContainer/TabContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/VBoxContainer/TabContainer/内置关卡"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Button" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/内置关卡/VBoxContainer"]
+layout_mode = 2
+text = "1-1"
+
+[node name="自制关卡" type="ItemList" parent="CanvasLayer/Control/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Button2" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡/VBoxContainer"]
+layout_mode = 2
+text = "10-10"
+
+[node name="Button" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡/VBoxContainer"]
+layout_mode = 2
+text = "1-1"
+
+[node name="CreateNewLevelButton" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
+layout_mode = 2
+text = "新建关卡"
+
+[node name="ToggleFullScreen" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "全屏切换"
+
+[node name="ExitButton" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "退出游戏"
+
+[node name="Editor" type="VBoxContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -183.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="Width" type="HBoxContainer" parent="CanvasLayer/Control/Editor"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/Control/Editor/Width"]
+layout_mode = 2
+text = "宽度"
+
+[node name="SpinBox" type="SpinBox" parent="CanvasLayer/Control/Editor/Width"]
+layout_mode = 2
+min_value = 3.0
+value = 3.0
+
+[node name="Height" type="HBoxContainer" parent="CanvasLayer/Control/Editor"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/Control/Editor/Height"]
+layout_mode = 2
+text = "高度"
+
+[node name="SpinBox" type="SpinBox" parent="CanvasLayer/Control/Editor/Height"]
+layout_mode = 2
+min_value = 3.0
+value = 3.0
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/Control/Editor"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/Editor"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Save" type="HBoxContainer" parent="CanvasLayer/Control/Editor"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/Control/Editor/Save"]
+layout_mode = 2
+text = "文件名"
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer/Control/Editor/Save"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SaveButton" type="Button" parent="CanvasLayer/Control/Editor"]
+layout_mode = 2
+text = "保存"

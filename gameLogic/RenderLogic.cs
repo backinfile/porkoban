@@ -78,6 +78,20 @@ public partial class RenderLogic : Node
         {
             CreateElementNodeRe(gameMap, e);
         }
+
+        OnSizeChanged();
+    }
+
+    public static void OnSizeChanged()
+    {
+        GameMap gameMap = GameLogic.gameMap;
+        if (gameMap != null)
+        {
+            Game.Instance.SetCameraView(
+                new Vector2(ElementNode.Element_Unit_Size * 2, ElementNode.Element_Unit_Size * 2),
+                new Vector2(ElementNode.Element_Unit_Size * (gameMap.width + 2),
+                ElementNode.Element_Unit_Size * (gameMap.height + 2)));
+        }
     }
 
     private static void CreateElementNodeRe(GameMap gameMap, Element e, int layer = 0)
@@ -90,6 +104,11 @@ public partial class RenderLogic : Node
             node.ZIndex = (layer == 0) ? Res.Z_Ground : (Res.Z_Swallow + layer);
             node.Modulate = new Color(1, 1, 1, layer == 0 ? 1 : 0.8f);
             Game.Instance.AddElementNode(node);
+
+            if (e.Type == Type.Target)
+            {
+                node.ZIndex = Res.Z_Target;
+            }
         }
         if (e.swallow != null) CreateElementNodeRe(gameMap, e.swallow, layer + 1);
     }
@@ -113,8 +132,8 @@ public partial class RenderLogic : Node
 
     public static Vector2 CalcNodePosition(GameMap gameMap, int x = 0, int y = 0)
     {
-        var startX = ElementNode.Element_Size / 2f;
-        var startY = ElementNode.Element_Size / 2f;
+        var startX = ElementNode.Element_Size / 2f;// + (ElementNode.Element_Size + ElementNode.Element_Gap);
+        var startY = ElementNode.Element_Size / 2f;// + (ElementNode.Element_Size + ElementNode.Element_Gap);
         var fx = startX + x * (ElementNode.Element_Size + ElementNode.Element_Gap);
         var fy = startY + y * (ElementNode.Element_Size + ElementNode.Element_Gap);
         return new Vector2(fx, fy);
