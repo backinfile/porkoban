@@ -135,9 +135,10 @@ text = "重置关卡"
 [node name="HSeparator" type="HSeparator" parent="CanvasLayer/Control/EditorPanel"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CanvasLayer/Control/EditorPanel"]
+[node name="CheckButton2" type="CheckButton" parent="CanvasLayer/Control/EditorPanel"]
 layout_mode = 2
-text = "绘制:"
+button_pressed = true
+text = "绘制箱子："
 
 [node name="OptionButton" type="OptionButton" parent="CanvasLayer/Control/EditorPanel"]
 unique_name_in_owner = true
@@ -160,6 +161,25 @@ popup/item_3/id = 3
 popup/item_4/text = "Target"
 popup/item_4/icon = ExtResource("5_ind3j")
 popup/item_4/id = 4
+
+[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/Control/EditorPanel"]
+layout_mode = 2
+
+[node name="CheckButton" type="CheckButton" parent="CanvasLayer/Control/EditorPanel"]
+layout_mode = 2
+text = "添加传送门"
+
+[node name="OptionButton2" type="OptionButton" parent="CanvasLayer/Control/EditorPanel"]
+layout_mode = 2
+item_count = 4
+popup/item_0/text = "↑上"
+popup/item_0/id = 0
+popup/item_1/text = "←左"
+popup/item_1/id = 1
+popup/item_2/text = "↓下"
+popup/item_2/id = 2
+popup/item_3/text = "→右"
+popup/item_3/id = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/EditorPanel"]
 layout_mode = 2
