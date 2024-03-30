@@ -10,13 +10,15 @@ public partial class ElementNode : Node2D
     public const int Element_Gap = 0;
     public static PackedScene element_object = GD.Load<PackedScene>("res://node/ElementNode.tscn");
 
-
-    public static float ui_offset_x = 0.0f;
-    public static float ui_offset_y = 0.0f;
-    private static readonly Dictionary<Type, ImageTexture> box_texture_cache = new();
-    private static readonly Dictionary<Type, ImageTexture> side_texture_cache = new();
-
     private Element element;
+
+    [Export]
+    public Texture2D PlayerTexture;
+    [Export]
+    public Texture2D BoxTexture;
+    [Export]
+    public Texture2D GateTexture;
+
 
     public static ElementNode CreateElementNode(Element element, float x = 0f, float y = 0f)
     {
@@ -24,19 +26,30 @@ public partial class ElementNode : Node2D
         ElementNode node = element_object.Instantiate<ElementNode>();
         node.element = element;
         node.Position = node.Position with { X = x, Y = y };
-        node.GetNode<Sprite2D>("Element").Texture = Res.GetImageTexture(element.Type);
+        Sprite2D mainSprite = node.GetNode<Sprite2D>("Element");
+        if (element.Type == Type.Player)
+        {
+            mainSprite.Texture = node.PlayerTexture;
+        } else if (element.Type == Type.Box)
+        {
+            mainSprite.Texture = node.BoxTexture;
+        } else
+        {
+            mainSprite.Texture = Res.GetImageTexture(element.Type);
+        }
 
         foreach (var dir in Enum.GetValues<DIR>())
         {
             Sprite2D sprite2D = node.GetNode<Sprite2D>(dir.ToString());
-            sprite2D.Texture = Res.GetImageTexture(dir);
+            sprite2D.Texture = node.GateTexture;
+            sprite2D.RotationDegrees = dir.ToRotation() - 90;
             if (element.GetGate(dir) != ' ')
             {
                 sprite2D.Modulate = GetGateColor(element.GetGate(dir));
             }
             else
             {
-                sprite2D.Hide();
+                sprite2D.QueueFree();
             }
         }
 
@@ -52,6 +65,8 @@ public partial class ElementNode : Node2D
 
         return node;
     }
+
+
     public static ElementNode CreateElementNode(Element element, Vector2 pos)
     {
         return CreateElementNode(element, pos.X, pos.Y);

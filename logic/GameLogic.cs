@@ -14,11 +14,12 @@ public partial class GameLogic : RefCounted
     private static bool hasMoveStepThisMove = false;
 
     private static readonly Queue<KeyValuePair<Element, DIR>> checkGateFirstQueue = new();
-    private static readonly List<Element> checkGateOrderStack = new();
+    private static int enterGateIndex = 0;
+
     public static void Clear()
     {
         checkGateFirstQueue.Clear();
-        checkGateOrderStack.Clear();
+        enterGateIndex = 0;
     }
 
     public static async Task Move(int dx, int dy)
@@ -63,22 +64,8 @@ public partial class GameLogic : RefCounted
                 }
             }
 
-            foreach (var e in new List<Element>(checkGateOrderStack))
-            {
-                if (moved) break; // check for next gate
-                if (e.swallow == null) continue;
-                //GD.Print($"check {e.ToFullString()}");
-                foreach (var dir in Enum.GetValues<DIR>())
-                {
-                    if (PushLogic.GetStepsByLeaveGate(gameMap, e, dir, out var steps))
-                    {
-                        GD.Print($"GetStepsByLeaveGate2 {string.Join(",", steps)}");
-                        moved = true;
-                        await DoMove(gameMap, steps);
-                    }
-                }
-            }
-            foreach (var e in new List<Element>(gameMap.boxData.Keys))
+            List<Element> gateCheckList = gameMap.boxData.Keys.Where(e => e.swallow != null).OrderByDescending(e => e.enterGateIndex).ToList();
+            foreach (var e in gateCheckList)
             {
                 if (moved) break; // check for next gate
                 if (e.swallow == null) continue;
@@ -136,10 +123,10 @@ public partial class GameLogic : RefCounted
                             e.swallow.Position = e.Position;
                             e.swallowGate = gateChar;
                             foreach (var dir in e.GetDIRByGate(gateChar)) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(e, dir));
-                            if (!checkGateOrderStack.Contains(e)) checkGateOrderStack.Add(e);
+                            e.enterGateIndex = enterGateIndex++;
                         }
                         foreach (var dir in step.Gate.GetDIRByGate(gateChar, step.DIR.Opposite())) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(step.Gate, dir));
-                        if (!checkGateOrderStack.Contains(step.Gate)) checkGateOrderStack.Add(step.Gate);
+                        step.Gate.enterGateIndex = enterGateIndex++;
                         break;
                     }
                 case StepType.Leave:
@@ -153,9 +140,7 @@ public partial class GameLogic : RefCounted
                             if (e.swallow != null) removed.Add(e.swallow);
                             e.swallow = null;
                             e.swallowGate = ' ';
-                            checkGateOrderStack.Remove(e);
                         }
-                        checkGateOrderStack.Remove(step.Gate);
                         break;
                     }
                 case StepType.LeaveAndEnter:
@@ -171,9 +156,7 @@ public partial class GameLogic : RefCounted
                                 if (e.swallow != null) removed.Add(e.swallow);
                                 e.swallow = null;
                                 e.swallowGate = ' ';
-                                checkGateOrderStack.Remove(e);
                             }
-                            checkGateOrderStack.Remove(step.Gate);
                         }
 
                         {
@@ -188,10 +171,10 @@ public partial class GameLogic : RefCounted
                                 e.swallow.Position = e.Position;
                                 e.swallowGate = secondGateChar;
                                 foreach (var dir in e.GetDIRByGate(secondGateChar)) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(e, dir));
-                                if (!checkGateOrderStack.Contains(e)) checkGateOrderStack.Add(e);
+                                e.enterGateIndex = enterGateIndex++;
                             }
                             foreach (var dir in step.GateSecond.GetDIRByGate(secondGateChar, step.DIR.Opposite())) checkGateFirstQueue.Enqueue(new KeyValuePair<Element, DIR>(step.GateSecond, dir));
-                            if (!checkGateOrderStack.Contains(step.GateSecond)) checkGateOrderStack.Add(step.GateSecond);
+                            step.GateSecond.enterGateIndex = enterGateIndex++;
                         }
                         break;
                     }
@@ -207,7 +190,7 @@ public partial class GameLogic : RefCounted
         SetPositionRe(element.swallow, pos);
     }
 
-    
+
 }
 
 

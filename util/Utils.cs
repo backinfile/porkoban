@@ -32,16 +32,28 @@ public static partial class Utils
         return new Vector2I(pos.X + dir.DX(), pos.Y + dir.DY());
     }
 
+    public static int ToRotation(this DIR dir)
+    {
+        return dir switch
+        {
+            DIR.UP => 0,
+            DIR.DOWN => 180,
+            DIR.LEFT => 270,
+            DIR.RIGHT => 90,
+            _ => 0,
+        };
+    }
+
     public static int DX(this DIR dir)
     {
-        switch (dir)
+        return dir switch
         {
-            case DIR.UP: return 0;
-            case DIR.DOWN: return 0;
-            case DIR.LEFT: return -1;
-            case DIR.RIGHT: return 1;
-        }
-        return 0;
+            DIR.UP => 0,
+            DIR.DOWN => 0,
+            DIR.LEFT => -1,
+            DIR.RIGHT => 1,
+            _ => 0,
+        };
     }
     public static int DY(this DIR dir)
     {

@@ -46,6 +46,7 @@ public partial class RenderLogic : Node
             var tween = node.CreateTween();
             tween.Parallel().TweenProperty(node, "position", Game.CalcNodePosition(gameMap, e.Position), MOVE_INTERVAL);
             tween.Parallel().TweenProperty(node, "scale", Res.Scale_Normal * Mathf.Pow(Res.Scale_Swallow_f, layer), MOVE_INTERVAL);
+            tween.Parallel().TweenProperty(node, "modulate", new Color(1, 1, 1, layer == 0 ? 1 : 0.8f), MOVE_INTERVAL);
             node.ZIndex = (layer == 0) ? Res.Z_Ground : (Res.Z_Swallow + layer);
         }
         MoveRe(gameMap, e.swallow, layer + 1);
@@ -87,6 +88,7 @@ public partial class RenderLogic : Node
             node.Position = Game.CalcNodePosition(gameMap, e.Position);
             node.Scale = Res.Scale_Normal * Mathf.Pow(Res.Scale_Swallow_f, layer);
             node.ZIndex = (layer == 0) ? Res.Z_Ground : (Res.Z_Swallow + layer);
+            node.Modulate = new Color(1, 1, 1, layer == 0 ? 1 : 0.8f);
             Game.Instance.AddElementNode(node);
         }
         if (e.swallow != null) CreateElementNodeRe(gameMap, e.swallow, layer + 1);

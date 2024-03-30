@@ -15,6 +15,7 @@ public partial class Element : RefCounted
 
     public Element swallow = null;
     public char swallowGate = ' ';
+    public int enterGateIndex = -1;
 
     private Element()
     {
@@ -151,7 +152,7 @@ public enum Side
 {
     None = ' ',
     Gate = 'G',
-    Push = 'P',
-    Drag = 'D',
+    //Push = 'P',
+    //Drag = 'D',
 }
 
