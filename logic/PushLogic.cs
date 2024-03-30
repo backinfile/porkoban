@@ -37,7 +37,7 @@ public partial class PushLogic : RefCounted
             return true;
         }
         // else: push
-        if (GetStepsByPushForceOn(gameMap, player, dir, out var pushSteps))
+        if (GetStepsByPushForceOn(gameMap, player, dir, out var pushSteps, player))
         {
             steps.Add(Step.CreateNormal(player, dir));
             steps.AddRange(pushSteps);
@@ -95,7 +95,7 @@ public partial class PushLogic : RefCounted
 
     // apply force form element.Pos -> element.Pos.NextPos
     // asset nextPos'element is not null
-    public static bool GetStepsByPushForceOn(GameMap gameMap, Element source, DIR dir, out List<Step> steps)
+    public static bool GetStepsByPushForceOn(GameMap gameMap, Element source, DIR dir, out List<Step> steps, params Element[] moving)
     {
         steps = new List<Step>();
         var pos = source.Position.NextPos(dir); // cur force source

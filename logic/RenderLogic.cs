@@ -29,7 +29,7 @@ public partial class RenderLogic : Node
             MoveRe(map, e);
         }
 
-        await Game.Instance.Wait(MOVE_INTERVAL);
+        await Game.Wait(MOVE_INTERVAL);
 
         foreach (var e in map.boxData.Keys)
         {
@@ -44,7 +44,7 @@ public partial class RenderLogic : Node
         if (node != null)
         {
             var tween = node.CreateTween();
-            tween.Parallel().TweenProperty(node, "position", Game.CalcNodePosition(gameMap, e.Position), MOVE_INTERVAL);
+            tween.Parallel().TweenProperty(node, "position", CalcNodePosition(gameMap, e.Position), MOVE_INTERVAL);
             tween.Parallel().TweenProperty(node, "scale", Res.Scale_Normal * Mathf.Pow(Res.Scale_Swallow_f, layer), MOVE_INTERVAL);
             tween.Parallel().TweenProperty(node, "modulate", new Color(1, 1, 1, layer == 0 ? 1 : 0.8f), MOVE_INTERVAL);
             node.ZIndex = (layer == 0) ? Res.Z_Ground : (Res.Z_Swallow + layer);
@@ -65,7 +65,7 @@ public partial class RenderLogic : Node
         }
 
         { // add background
-            Vector2 startPosition = Game.CalcNodePosition(gameMap);
+            Vector2 startPosition = CalcNodePosition(gameMap);
             var background = new ColorRect();
             background.Color = Colors.LightGray;
             background.Position = new Vector2(startPosition.X - ElementNode.Element_Size / 2.0f, startPosition.Y - ElementNode.Element_Size / 2.0f);
@@ -85,7 +85,7 @@ public partial class RenderLogic : Node
         if (GetElementNode(e, false) == null)
         {
             ElementNode node = GetElementNode(e);
-            node.Position = Game.CalcNodePosition(gameMap, e.Position);
+            node.Position = CalcNodePosition(gameMap, e.Position);
             node.Scale = Res.Scale_Normal * Mathf.Pow(Res.Scale_Swallow_f, layer);
             node.ZIndex = (layer == 0) ? Res.Z_Ground : (Res.Z_Swallow + layer);
             node.Modulate = new Color(1, 1, 1, layer == 0 ? 1 : 0.8f);
@@ -108,6 +108,19 @@ public partial class RenderLogic : Node
 
     public static void DoMove(List<Step> steps)
     {
-        RefreshRender(Game.gameMap);
+        RefreshRender(GameLogic.gameMap);
+    }
+
+    public static Vector2 CalcNodePosition(GameMap gameMap, int x = 0, int y = 0)
+    {
+        var startX = ElementNode.Element_Size / 2f;
+        var startY = ElementNode.Element_Size / 2f;
+        var fx = startX + x * (ElementNode.Element_Size + ElementNode.Element_Gap);
+        var fy = startY + y * (ElementNode.Element_Size + ElementNode.Element_Gap);
+        return new Vector2(fx, fy);
+    }
+    public static Vector2 CalcNodePosition(GameMap gameMap, Vector2I pos)
+    {
+        return CalcNodePosition(gameMap, pos.X, pos.Y);
     }
 }

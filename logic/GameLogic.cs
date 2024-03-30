@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 public partial class GameLogic : RefCounted
 {
     public static bool IsMoving { get; set; } = false;
+    public static GameMap gameMap { get; private set; }
 
 
     public static readonly Stack<GameMap> history = new();
@@ -25,7 +27,7 @@ public partial class GameLogic : RefCounted
     public static async Task Move(int dx, int dy)
     {
         IsMoving = true;
-        var gameMap = Game.gameMap;
+        var gameMap = GameLogic.gameMap;
         GD.Print($"Move {dx}, {dy}");
         hasMoveStepThisMove = false;
 
@@ -188,6 +190,85 @@ public partial class GameLogic : RefCounted
         if (element == null) return;
         element.Position = pos;
         SetPositionRe(element.swallow, pos);
+    }
+
+    public static async Task Update()
+    {
+        int dx = 0;
+        int dy = 0;
+
+        if (Input.IsActionJustPressed("restart"))
+        {
+            await Restart();
+        }
+        else if (Input.IsActionJustPressed("back"))
+        {
+            await PlayBack();
+        }
+        else if (Input.IsActionJustPressed("move_left"))
+        {
+            dx -= 1;
+        }
+        else if (Input.IsActionJustPressed("move_right"))
+        {
+            dx += 1;
+        }
+        else if (Input.IsActionJustPressed("move_up"))
+        {
+            dy -= 1;
+        }
+        else if (Input.IsActionJustPressed("move_down"))
+        {
+            dy += 1;
+        }
+
+        if (dx != 0 || dy != 0)
+        {
+            if (!GameLogic.IsMoving)
+            {
+                await GameLogic.Move(dx, dy);
+            }
+        }
+    }
+
+    public static async Task Restart()
+    {
+        if (GameLogic.IsMoving)
+        {
+            GameLogic.IsMoving = false;
+            await Game.Wait(RenderLogic.MOVE_INTERVAL * 2);
+        }
+        else if (gameMap != null)
+        {
+            GameLogic.history.Push(gameMap.MakeCopy());
+        }
+
+        GameLogic.Clear();
+        GameLogic.gameMap = null;
+
+
+        gameMap = GameMap.ParseFile(Path.GetDirectoryName(OS.GetExecutablePath()) + "/level1.json");
+        gameMap ??= GameMap.ParseFile("res://mapResource/level1.json");
+        GD.Print(gameMap.boxData.Count);
+        RenderLogic.RefreshRender(gameMap);
+    }
+
+    public static async Task PlayBack()
+    {
+        if (GameLogic.IsMoving)
+        {
+            GameLogic.IsMoving = false;
+            await Game.Wait(RenderLogic.MOVE_INTERVAL * 2);
+        }
+
+        if (GameLogic.history.Count > 0)
+        {
+            GD.Print("take out history");
+            GameMap gameMap = GameLogic.history.Pop();
+            GameLogic.gameMap = gameMap;
+            RenderLogic.RefreshRender(gameMap);
+        }
+
     }
 
 
