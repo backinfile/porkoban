@@ -9,8 +9,9 @@ public partial class Game : Node
 {
     public static Game Instance { get; private set; }
 
-    public override async void _Ready()
+    public override void _Ready()
     {
+        GD.Print("WorkPath: " + OS.GetExecutablePath());
         Instance = this;
         Res.Init();
         GetTree().Root.SizeChanged += RenderLogic.OnSizeChanged;
@@ -22,7 +23,32 @@ public partial class Game : Node
             else
                 DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
         };
-        await GameLogic.Restart();
+        GetNode<Button>("%CreateNewLevelButton").Pressed += async () => { await EditorLogic.CreateSelfDefineLevel(); };
+
+
+        {
+            var buildInNode = GetNode<VBoxContainer>("%BuildInLevels");
+            buildInNode.ClearChildren();
+            foreach(var fileName in Utils.ListFiles("res://mapResource"))
+            {
+                var btn = new Button();
+                btn.Text = fileName;
+                btn.Pressed += async () => { await GameLogic.OpenLevel(fileName, true); };
+                buildInNode.AddChild(btn);
+            }
+        }
+        {
+            var selfDefineNode = GetNode<VBoxContainer>("%SelfDefineLevels");
+            selfDefineNode.ClearChildren();
+            foreach (var fileName in Utils.ListFiles(Path.GetDirectoryName(OS.GetExecutablePath()) + "/levels"))
+            {
+                var btn = new Button();
+                btn.Text = fileName;
+                btn.Pressed += async () => { await GameLogic.OpenLevel(fileName, false); };
+                selfDefineNode.AddChild(btn);
+            }
+        }
+
 
 
         //GD.Print($"RenderingServer.CanvasItemZMax = {RenderingServer.CanvasItemZMax} min= {RenderingServer.CanvasItemZMin}");

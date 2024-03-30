@@ -17,21 +17,33 @@ anchor_mode = 0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+mouse_force_pass_scroll_events = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 217.0
+offset_right = 187.0
 grow_vertical = 2
 
-[node name="TabContainer" type="TabContainer" parent="CanvasLayer/VBoxContainer"]
+[node name="TabContainer" type="TabContainer" parent="CanvasLayer/Control/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 tab_focus_mode = 1
 
-[node name="内置关卡" type="ItemList" parent="CanvasLayer/VBoxContainer/TabContainer"]
+[node name="内置关卡" type="ItemList" parent="CanvasLayer/Control/VBoxContainer/TabContainer"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/TabContainer/内置关卡"]
+[node name="BuildInLevels" type="VBoxContainer" parent="CanvasLayer/Control/VBoxContainer/TabContainer/内置关卡"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -39,15 +51,15 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Button" type="Button" parent="CanvasLayer/VBoxContainer/TabContainer/内置关卡/VBoxContainer"]
+[node name="Button" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/内置关卡/BuildInLevels"]
 layout_mode = 2
 text = "1-1"
 
-[node name="自制关卡" type="ItemList" parent="CanvasLayer/VBoxContainer/TabContainer"]
-visible = false
+[node name="自制关卡" type="ItemList" parent="CanvasLayer/Control/VBoxContainer/TabContainer"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/TabContainer/自制关卡"]
+[node name="SelfDefineLevels" type="VBoxContainer" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -55,62 +67,38 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Button2" type="Button" parent="CanvasLayer/VBoxContainer/TabContainer/自制关卡/VBoxContainer"]
+[node name="Button2" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡/SelfDefineLevels"]
 layout_mode = 2
 text = "10-10"
 
-[node name="Button" type="Button" parent="CanvasLayer/VBoxContainer/TabContainer/自制关卡/VBoxContainer"]
+[node name="Button" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡/SelfDefineLevels"]
 layout_mode = 2
 text = "1-1"
 
-[node name="CreateNewLevelButton" type="Button" parent="CanvasLayer/VBoxContainer"]
+[node name="CreateNewLevelButton" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "新建关卡"
 
-[node name="ToggleFullScreen" type="Button" parent="CanvasLayer/VBoxContainer"]
+[node name="ToggleFullScreen" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "全屏切换"
 
-[node name="ExitButton" type="Button" parent="CanvasLayer/VBoxContainer"]
+[node name="ExitButton" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "退出游戏"
 
-[node name="Control" type="Control" parent="CanvasLayer"]
-layout_mode = 3
-anchors_preset = 0
-offset_top = 648.0
-offset_right = 217.0
-offset_bottom = 648.0
-
-[node name="EditorModTip" type="HBoxContainer" parent="CanvasLayer/Control"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = 409.0
-offset_top = -648.0
-offset_right = 526.0
-offset_bottom = -608.0
-grow_horizontal = 2
-
-[node name="Label" type="Label" parent="CanvasLayer/Control/EditorModTip"]
-layout_mode = 2
-text = "编辑模式"
-
 [node name="EditorPanel" type="VBoxContainer" parent="CanvasLayer/Control"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 767.0
-offset_top = -648.0
-offset_right = 935.0
-offset_bottom = -398.0
+offset_left = -181.0
 grow_horizontal = 0
 grow_vertical = 2
 
@@ -150,6 +138,7 @@ layout_mode = 2
 text = "绘制:"
 
 [node name="OptionButton" type="OptionButton" parent="CanvasLayer/Control/EditorPanel"]
+unique_name_in_owner = true
 layout_mode = 2
 keep_pressed_outside = true
 item_count = 5
@@ -188,3 +177,19 @@ size_flags_horizontal = 3
 [node name="SaveButton" type="Button" parent="CanvasLayer/Control/EditorPanel"]
 layout_mode = 2
 text = "保存"
+
+[node name="EditorModTip" type="HBoxContainer" parent="CanvasLayer/Control"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -58.5
+offset_right = 58.5
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/Control/EditorModTip"]
+layout_mode = 2
+text = "编辑模式"

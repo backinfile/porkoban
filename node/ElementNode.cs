@@ -42,6 +42,21 @@ public partial class ElementNode : Node2D
             Type.Target => node.TargetTexture,
             _ => node.EmptyTexture,
         };
+        mainSprite.GuiInput += (ev) =>
+        {
+            if (ev is InputEventMouseButton e && e.Pressed)
+            {
+                GridEditor.OnElementClick(element);
+            }
+        };
+        mainSprite.MouseEntered += () =>
+        {
+            if (EditorLogic.InEditorMode) node.GetNode<TextureRect>("Select").Visible = true;
+        }; 
+        mainSprite.MouseExited += () =>
+        {
+            if (EditorLogic.InEditorMode) node.GetNode<TextureRect>("Select").Visible = false;
+        };
 
         foreach (var dir in Enum.GetValues<DIR>())
         {

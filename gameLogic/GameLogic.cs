@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 public partial class GameLogic : RefCounted
 {
     public static bool IsMoving { get; set; } = false;
-    public static GameMap gameMap { get; private set; }
+    public static GameMap gameMap = null;
+    public static GameMap theFirstGameMap = null;
 
 
     public static readonly Stack<GameMap> history = new();
@@ -17,6 +18,33 @@ public partial class GameLogic : RefCounted
 
     private static readonly Queue<KeyValuePair<Element, DIR>> checkGateFirstQueue = new();
     private static int enterGateIndex = 0;
+
+    public static async Task OpenLevel(string fileName, bool buildInLevel)
+    {
+        if (GameLogic.IsMoving)
+        {
+            GameLogic.IsMoving = false;
+            await Game.Wait(RenderLogic.MOVE_INTERVAL * 2);
+        }
+
+        EditorLogic.CloseEditor();
+
+        GD.Print("openLevel " + fileName);
+        GameLogic.Clear();
+        GameLogic.gameMap = null;
+        GameMap gameMap;
+        if (buildInLevel)
+        {
+            gameMap = GameMap.ParseFile($"res://mapResource/{fileName}.json");
+        }
+        else
+        {
+            gameMap = GameMap.ParseFile(Path.GetDirectoryName(OS.GetExecutablePath()) + $"/levels/{fileName}.json");
+        }
+        GameLogic.theFirstGameMap = gameMap.MakeCopy();
+        GameLogic.gameMap = gameMap;
+        RenderLogic.RefreshRender(gameMap);
+    }
 
     public static void Clear()
     {
@@ -194,6 +222,8 @@ public partial class GameLogic : RefCounted
 
     public static async Task Update()
     {
+        if (EditorLogic.InEditorMode) return;
+
         int dx = 0;
         int dy = 0;
 
@@ -244,11 +274,8 @@ public partial class GameLogic : RefCounted
         }
 
         GameLogic.Clear();
-        GameLogic.gameMap = null;
+        GameLogic.gameMap = GameLogic.theFirstGameMap.MakeCopy();
 
-
-        gameMap = GameMap.ParseFile(Path.GetDirectoryName(OS.GetExecutablePath()) + "/level1.json");
-        gameMap ??= GameMap.ParseFile("res://mapResource/level1.json");
         GD.Print(gameMap.boxData.Count);
         RenderLogic.RefreshRender(gameMap);
     }

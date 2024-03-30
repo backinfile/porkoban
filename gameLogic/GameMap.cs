@@ -102,7 +102,7 @@ public partial class GameMap : RefCounted
             width = width,
             height = height
         };
-        foreach(var e in boxData.Keys)
+        foreach (var e in boxData.Keys)
         {
             copy.boxData[e.MakeCopy()] = true;
         }
@@ -127,6 +127,24 @@ public partial class GameMap : RefCounted
             }
         }
         return true;
+    }
+
+    public static GameMap CreateEmpty(int width, int height, bool fullEmptyElement = false)
+    {
+        var gameMap = new GameMap();
+        gameMap.width = width;
+        gameMap.height = height;
+        if (fullEmptyElement)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    gameMap.AddElement(Element.Create("     ", x, y));
+                }
+            }
+        }
+        return gameMap;
     }
 
 

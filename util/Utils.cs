@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 public static partial class Utils
 {
@@ -103,6 +104,36 @@ public static partial class Utils
             case DIR.RIGHT: return DIR.LEFT;
         }
         return DIR.DOWN;
+    }
+
+
+    public static List<string> ListFiles(string path, string filterExtension = ".json")
+    {
+        var result = new List<string>();
+        using var dir = DirAccess.Open(path);
+        if (dir != null)
+        {
+            dir.ListDirBegin();
+            string fileName = dir.GetNext();
+            while (fileName != "")
+            {
+                if (!dir.CurrentIsDir() && fileName.EndsWith(filterExtension))
+                {
+                    result.Add(Path.GetFileNameWithoutExtension(fileName));
+                }
+                fileName = dir.GetNext();
+            }
+        }
+        return result;
+    }
+
+    public static void ClearChildren(this Node node)
+    {
+        foreach(var n in node.GetChildren())
+        {
+            node.RemoveChild(n);
+            n.QueueFree();
+        }
     }
 }
 public enum DIR
