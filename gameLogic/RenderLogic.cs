@@ -94,7 +94,7 @@ public partial class RenderLogic : Node
         }
     }
 
-    private static void CreateElementNodeRe(GameMap gameMap, Element e, int layer = 0)
+    public static void CreateElementNodeRe(GameMap gameMap, Element e, int layer = 0)
     {
         if (GetElementNode(e, false) == null)
         {
@@ -113,7 +113,7 @@ public partial class RenderLogic : Node
         if (e.swallow != null) CreateElementNodeRe(gameMap, e.swallow, layer + 1);
     }
 
-    public static ElementNode GetElementNode(Element e, bool createIfNotExist = true)
+    internal static ElementNode GetElementNode(Element e, bool createIfNotExist = true)
     {
         if (nodeMap.TryGetValue(e, out var node)) return node;
         if (createIfNotExist)
@@ -141,5 +141,15 @@ public partial class RenderLogic : Node
     public static Vector2 CalcNodePosition(GameMap gameMap, Vector2I pos)
     {
         return CalcNodePosition(gameMap, pos.X, pos.Y);
+    }
+
+    public static void Remove(GameMap gameMap, Element e)
+    {
+        gameMap.RemoveElement(e);
+        ElementNode node = GetElementNode(e, false);
+        if (node != null)
+        {
+            Game.Instance.RemoveElementNode(node);
+        }
     }
 }

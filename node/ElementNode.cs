@@ -29,7 +29,7 @@ public partial class ElementNode : Node2D
 
     public static ElementNode CreateElementNode(Element element, float x = 0f, float y = 0f)
     {
-        //GD.Print($"create elementNode {element.Type} {x} {y}");
+        GD.Print($"create elementNode {element.Type} {element.Position}");
         ElementNode node = element_object.Instantiate<ElementNode>();
         node.element = element;
         node.Position = node.Position with { X = x, Y = y };
@@ -46,7 +46,13 @@ public partial class ElementNode : Node2D
         {
             if (ev is InputEventMouseButton e && e.Pressed)
             {
-                GridEditor.OnElementClick(element);
+                if (e.ButtonIndex == MouseButton.Left)
+                {
+                    EditorLogic.OnElementClick(element);
+                } else if (e.ButtonIndex == MouseButton.Middle)
+                {
+                    //EditorLogic.OnMouseScroll(e.d)
+                }
             }
         };
         mainSprite.MouseEntered += () =>

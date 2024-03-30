@@ -25,6 +25,8 @@ public partial class Game : Node
         };
         GetNode<Button>("%CreateNewLevelButton").Pressed += async () => { await EditorLogic.CreateSelfDefineLevel(); };
 
+        GetNode<SpinBox>("%MapWidth").ValueChanged += (v)=> { EditorLogic.OnMapSizeChanged(); };
+        GetNode<SpinBox>("%MapHeight").ValueChanged += (v) => { EditorLogic.OnMapSizeChanged(); };
 
         {
             var buildInNode = GetNode<VBoxContainer>("%BuildInLevels");
