@@ -186,9 +186,9 @@ public partial class GameMap : RefCounted
         var boxData = new Godot.Collections.Array();
         var floorData = new Godot.Collections.Array();
 
-        for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++)
         {
-            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
             {
                 {
                     Element e = GetElement(x, y);

@@ -88,9 +88,9 @@ public partial class RenderLogic : Node
         if (gameMap != null)
         {
             Game.Instance.SetCameraView(
-                new Vector2(ElementNode.Element_Unit_Size * 2, ElementNode.Element_Unit_Size * 2),
-                new Vector2(ElementNode.Element_Unit_Size * (gameMap.width + 2),
-                ElementNode.Element_Unit_Size * (gameMap.height + 2)));
+                new Vector2(0, 0),
+                new Vector2(ElementNode.Element_Unit_Size * gameMap.width,
+                ElementNode.Element_Unit_Size * gameMap.height));
         }
     }
 

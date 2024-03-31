@@ -185,11 +185,18 @@ public partial class EditorLogic : Node
                     RenderLogic.CreateElementNodeRe(gameMap, floor);
                 }
             }
-            else
+            else if (type != element.Type)
             {
                 gameMap.RemoveElement(element);
                 RenderLogic.Remove(gameMap, element);
                 element = Element.Create((char)type + "    ", pos.X, pos.Y);
+                gameMap.AddElement(element);
+                RenderLogic.CreateElementNodeRe(gameMap, element);
+            } else
+            {
+                gameMap.RemoveElement(element);
+                RenderLogic.Remove(gameMap, element);
+                element = Element.Create("     ", pos.X, pos.Y);
                 gameMap.AddElement(element);
                 RenderLogic.CreateElementNodeRe(gameMap, element);
             }

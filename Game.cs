@@ -49,6 +49,10 @@ public partial class Game : Node
 
     public void SetCameraView(Vector2 offset, Vector2 size)
     {
+        var expandSize = new Vector2(size.X / 2f, size.Y / 4f);
+        offset += expandSize;
+        size += expandSize;
+
         Camera2D camera2D = GetNode<Camera2D>("Camera2D");
         Vector2 cameraSize = camera2D.GetViewportRect().Size;
         float scale = Math.Max(size.X / cameraSize.X, size.Y / cameraSize.Y);
