@@ -10,8 +10,8 @@ public partial class Element : RefCounted
     public Vector2I Position { get => new(X, Y); set { X = value.X; Y = value.Y; } }
 
     public Type Type { get; private set; } = Type.None;
-    private Side[] side = { Side.None, Side.None, Side.None, Side.None }; // up down left right
-    private char[] gate = { ' ', ' ', ' ', ' ' }; // use non UpperCase
+    public Side[] side = { Side.None, Side.None, Side.None, Side.None }; // up down left right
+    public char[] gate = { ' ', ' ', ' ', ' ' }; // use non UpperCase
 
     public Element swallow = null;
     public char swallowGate = ' ';

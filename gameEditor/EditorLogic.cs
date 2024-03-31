@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 
 public partial class EditorLogic : Node
 {
     public static bool InEditorMode = false;
+    public static bool DrawBoxMod = true;
 
     [Export]
     public Texture2D[] textures;
@@ -93,12 +95,22 @@ public partial class EditorLogic : Node
                 gameMap.RemoveElement(e);
             }
         }
+        for (int x = 0; x < gameMap.width; x++)
+        {
+            for (int y = 0; y < gameMap.height; y++)
+            {
+                if (gameMap.GetElement(x, y) == null)
+                {
+                    gameMap.AddElement(Element.Create("     ", x, y));
+                }
+            }
+        }
         RenderLogic.RefreshRender(gameMap);
     }
 
     private static Type GetCurSelectType()
     {
-        int selected = Game.Instance.GetNode<OptionButton>("%OptionButton").Selected;
+        int selected = Game.Instance.GetNode<OptionButton>("%DrawBoxOptionButton").Selected;
         return selected switch
         {
             0 => Type.None,
@@ -110,6 +122,40 @@ public partial class EditorLogic : Node
         };
     }
 
+    private static DIR GetCurSelectDIR()
+    {
+        int selected = Game.Instance.GetNode<OptionButton>("%DrawGateOptionButton").Selected;
+        return (DIR)selected;
+    }
+
+    private static string GetCurFileName()
+    {
+        LineEdit lineEdit = Game.Instance.GetNode("%EditorPanel").GetNode("Save").GetNode<LineEdit>("LineEdit");
+        return lineEdit.Text;
+    }
+
+    private static void ChangeCurSelectType(int dx)
+    {
+        GD.Print("ChangeCurSelectType " + dx);
+        if (DrawBoxMod)
+        {
+            var optionBtn = Game.Instance.GetNode<OptionButton>("%DrawBoxOptionButton");
+            optionBtn.Select((optionBtn.Selected + dx + optionBtn.ItemCount) % optionBtn.ItemCount);
+        }
+        else
+        {
+            var optionBtn = Game.Instance.GetNode<OptionButton>("%DrawGateOptionButton");
+            optionBtn.Select((optionBtn.Selected + dx + optionBtn.ItemCount) % optionBtn.ItemCount);
+        }
+    }
+
+    private static char GetCurGateChar()
+    {
+        string text = Game.Instance.GetNode<LineEdit>("%GateCharInput").Text;
+        if (text == null || text.Length == 0) return ' ';
+        return text[0];
+    }
+
 
     public static void OnElementClick(Element element)
     {
@@ -117,29 +163,138 @@ public partial class EditorLogic : Node
 
         var gameMap = GameLogic.gameMap;
         var pos = element.Position;
+        element = gameMap.GetElement(pos);
+        GD.Print($"click element {element.ToFullString()}");
 
-        Type type = GetCurSelectType();
-        GD.Print($"click element {element.ToFullString()} type={type}");
-
-        if (type == Type.Target)
+        if (DrawBoxMod)
         {
-            Element floor = gameMap.GetFloorElement(pos);
-            if (floor != null)
+            Type type = GetCurSelectType();
+
+            if (type == Type.Target)
             {
-                gameMap.RemoveElement(floor);
-                RenderLogic.Remove(gameMap, floor);
-            } else
-            {
-                floor = Element.Create((char)type + "    ", pos.X, pos.Y);
-                gameMap.AddFloorElement(floor);
-                RenderLogic.CreateElementNodeRe(gameMap, floor);
+                Element floor = gameMap.GetFloorElement(pos);
+                if (floor != null)
+                {
+                    gameMap.RemoveElement(floor);
+                    RenderLogic.Remove(gameMap, floor);
+                }
+                else
+                {
+                    floor = Element.Create((char)type + "    ", pos.X, pos.Y);
+                    gameMap.AddFloorElement(floor);
+                    RenderLogic.CreateElementNodeRe(gameMap, floor);
+                }
             }
+            else
+            {
+                gameMap.RemoveElement(element);
+                RenderLogic.Remove(gameMap, element);
+                element = Element.Create((char)type + "    ", pos.X, pos.Y);
+                gameMap.AddElement(element);
+                RenderLogic.CreateElementNodeRe(gameMap, element);
+            }
+        }
+        else
+        {
+            DIR dir = GetCurSelectDIR();
+            char gateChar = GetCurGateChar();
+            if (element.Type == Type.Box || element.Type == Type.Wall || element.Type == Type.Player)
+            {
+                if (gateChar != ' ' && gateChar != element.gate[(int)dir])
+                {
+                    element.gate[(int)dir] = gateChar;
+                    element.side[(int)dir] = Side.Gate;
+                }
+                else
+                {
+                    element.gate[(int)dir] = ' ';
+                    element.side[(int)dir] = Side.None;
+                }
+                RenderLogic.Remove(gameMap, element);
+                gameMap.AddElement(element);
+                RenderLogic.CreateElementNodeRe(gameMap, element);
+            }
+        }
+
+    }
+
+    public static void InitEditorPanel()
+    {
+        EditorLogic.ShowEditorPanel(false);
+
+        Game.Instance.GetNode<SpinBox>("%MapWidth").ValueChanged += (v) => { EditorLogic.OnMapSizeChanged(); };
+        Game.Instance.GetNode<SpinBox>("%MapHeight").ValueChanged += (v) => { EditorLogic.OnMapSizeChanged(); };
+
+        {
+            CheckButton drawBoxCheck = Game.Instance.GetNode<CheckButton>("%DrawBoxCheck");
+            drawBoxCheck.Pressed += () => ChangeDrawBoxMod(drawBoxCheck.ButtonPressed);
+            CheckButton drawGateCheck = Game.Instance.GetNode<CheckButton>("%DrawGateCheck");
+            drawGateCheck.Pressed += () => ChangeDrawBoxMod(!drawGateCheck.ButtonPressed);
+        }
+
+        {
+            Game.Instance.GetNode<OptionButton>("%DrawBoxOptionButton").Pressed += () => ChangeDrawBoxMod(true);
+            Game.Instance.GetNode<OptionButton>("%DrawGateOptionButton").Pressed += () => ChangeDrawBoxMod(false);
+        }
+
+        {
+            Game.Instance.GetNode("%EditorPanel").GetNode<Button>("SaveButton").Pressed += async () => await SaveAndPlay(false);
+            Game.Instance.GetNode("%EditorPanel").GetNode<Button>("SaveAndPlayButton").Pressed += async () => await SaveAndPlay(true);
+        }
+    }
+
+    private static async Task SaveAndPlay(bool play)
+    {
+        string fileName = GetCurFileName();
+        if (fileName == null || fileName.Length == 0)
+        {
+            OS.Alert("no file name!");
+            return;
+        }
+        var gameMap = GameLogic.gameMap.MakeCopy();
+        // clear empty node
+        foreach (var e in gameMap.boxData.Keys.Concat(gameMap.floorData.Keys).ToList())
+        {
+            if (e.Type == Type.None) gameMap.RemoveElement(e);
+        }
+
+        // save
+        if (gameMap.Save(fileName, Game.GetSelfDefineLevelPath()))
+        {
+            OS.Alert($"save {fileName} success!");
         } else
         {
-            gameMap.RemoveElement(element);
-            element = Element.Create((char)type + "    ", pos.X, pos.Y);
-            gameMap.AddElement(element);
-            RenderLogic.CreateElementNodeRe(gameMap, element);
+            OS.Alert($"save {fileName} failed!");
+            return;
+        }
+        Game.Instance.UpdateLevels();
+
+        // run
+        if (play)
+        {
+            await GameLogic.OpenLevel(fileName, false);
+        }
+    }
+
+    private static void ChangeDrawBoxMod(bool drawBox)
+    {
+        Game.Instance.GetNode<CheckButton>("%DrawBoxCheck").ButtonPressed = drawBox;
+        Game.Instance.GetNode<CheckButton>("%DrawGateCheck").ButtonPressed = !drawBox;
+        EditorLogic.DrawBoxMod = drawBox;
+        GD.Print("cur DrawBoxMod = " + EditorLogic.DrawBoxMod);
+    }
+
+    public static void Update()
+    {
+        if (!InEditorMode) return;
+
+        if (Input.IsActionJustPressed("draw_type_up"))
+        {
+            ChangeCurSelectType(-1);
+        }
+        else if (Input.IsActionJustPressed("draw_type_down"))
+        {
+            ChangeCurSelectType(1);
         }
     }
 }

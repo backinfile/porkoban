@@ -24,40 +24,15 @@ public partial class Game : Node
                 DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
         };
         GetNode<Button>("%CreateNewLevelButton").Pressed += async () => { await EditorLogic.CreateSelfDefineLevel(); };
+        UpdateLevels();
 
-        GetNode<SpinBox>("%MapWidth").ValueChanged += (v)=> { EditorLogic.OnMapSizeChanged(); };
-        GetNode<SpinBox>("%MapHeight").ValueChanged += (v) => { EditorLogic.OnMapSizeChanged(); };
-
-        {
-            var buildInNode = GetNode<VBoxContainer>("%BuildInLevels");
-            buildInNode.ClearChildren();
-            foreach(var fileName in Utils.ListFiles("res://mapResource"))
-            {
-                var btn = new Button();
-                btn.Text = fileName;
-                btn.Pressed += async () => { await GameLogic.OpenLevel(fileName, true); };
-                buildInNode.AddChild(btn);
-            }
-        }
-        {
-            var selfDefineNode = GetNode<VBoxContainer>("%SelfDefineLevels");
-            selfDefineNode.ClearChildren();
-            foreach (var fileName in Utils.ListFiles(Path.GetDirectoryName(OS.GetExecutablePath()) + "/levels"))
-            {
-                var btn = new Button();
-                btn.Text = fileName;
-                btn.Pressed += async () => { await GameLogic.OpenLevel(fileName, false); };
-                selfDefineNode.AddChild(btn);
-            }
-        }
-
-
-
+        EditorLogic.InitEditorPanel();
         //GD.Print($"RenderingServer.CanvasItemZMax = {RenderingServer.CanvasItemZMax} min= {RenderingServer.CanvasItemZMin}");
     }
 
     public override async void _Process(double delta)
     {
+        EditorLogic.Update();
         await GameLogic.Update();
     }
 
@@ -96,18 +71,33 @@ public partial class Game : Node
         node.QueueFree();
     }
 
-    public override void _Input(InputEvent @event)
+    public void UpdateLevels()
     {
-        base._Input(@event);
-        //if (@event is InputEventMouseButton e && e.Pressed && e.ButtonIndex == MouseButton.Left)
-        //{
-        //    GD.Print("click " + e.Position + "  " + e.GlobalPosition);
-        //    foreach (var box in GameLogic.gameMap.boxData.Keys)
-        //    {
-        //        ElementNode node = RenderLogic.GetElementNode(box);
-        //        GD.Print(node.GetLocalMousePosition());
-        //        GD.Print(node.GetLocalMousePosition());
-        //    }
-        //}
+        { // init levels
+            var buildInNode = GetNode<VBoxContainer>("%BuildInLevels");
+            buildInNode.ClearChildren();
+            foreach (var fileName in Utils.ListFiles("res://mapResource"))
+            {
+                var btn = new Button();
+                btn.Text = fileName;
+                btn.Pressed += async () => { await GameLogic.OpenLevel(fileName, true); };
+                buildInNode.AddChild(btn);
+            }
+        }
+        {
+            var selfDefineNode = GetNode<VBoxContainer>("%SelfDefineLevels");
+            selfDefineNode.ClearChildren();
+            foreach (var fileName in Utils.ListFiles(GetSelfDefineLevelPath()))
+            {
+                var btn = new Button();
+                btn.Text = fileName;
+                btn.Pressed += async () => { await GameLogic.OpenLevel(fileName, false); };
+                selfDefineNode.AddChild(btn);
+            }
+        }
+    }
+    public static string GetSelfDefineLevelPath()
+    {
+        return Path.GetDirectoryName(OS.GetExecutablePath()) + "/levels";
     }
 }

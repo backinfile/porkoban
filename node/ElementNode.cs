@@ -29,7 +29,7 @@ public partial class ElementNode : Node2D
 
     public static ElementNode CreateElementNode(Element element, float x = 0f, float y = 0f)
     {
-        GD.Print($"create elementNode {element.Type} {element.Position}");
+        GD.Print($"create elementNode {element.ToFullString()}");
         ElementNode node = element_object.Instantiate<ElementNode>();
         node.element = element;
         node.Position = node.Position with { X = x, Y = y };

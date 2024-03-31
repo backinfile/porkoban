@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 public static partial class Utils
 {
@@ -119,12 +118,32 @@ public static partial class Utils
             {
                 if (!dir.CurrentIsDir() && fileName.EndsWith(filterExtension))
                 {
-                    result.Add(Path.GetFileNameWithoutExtension(fileName));
+                    result.Add(System.IO.Path.GetFileNameWithoutExtension(fileName));
                 }
                 fileName = dir.GetNext();
             }
         }
         return result;
+    }
+
+    public static bool SaveFile(string path, string fileName, string content)
+    {
+        DirAccess.MakeDirRecursiveAbsolute(path);
+        var fullPath = path + '/' + fileName;
+        try
+        {
+            FileAccess fileAccess = FileAccess.Open(fullPath, FileAccess.ModeFlags.Write);
+            if (fileAccess != null)
+            {
+                fileAccess.StoreString(content);
+                fileAccess.Close();
+                return true;
+            }
+        } catch (Exception e)
+        {
+            GD.PrintErr(e);
+        }
+        return false;
     }
 
     public static void ClearChildren(this Node node)

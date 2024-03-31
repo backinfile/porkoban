@@ -177,4 +177,47 @@ public partial class GameMap : RefCounted
         }
         return map;
     }
+
+    public bool Save(string fileName, string path)
+    {
+        var dict = new Godot.Collections.Dictionary();
+        dict["width"] = width;
+        dict["height"] = height;
+        var boxData = new Godot.Collections.Array();
+        var floorData = new Godot.Collections.Array();
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                {
+                    Element e = GetElement(x, y);
+                    if (e != null)
+                    {
+                        boxData.Add((char)e.Type + string.Join("", e.gate));
+                    }
+                    else
+                    {
+                        boxData.Add("     ");
+                    }
+                }
+                {
+                    Element e = GetFloorElement(x, y);
+                    if (e != null)
+                    {
+                        floorData.Add((char)e.Type + string.Join("", e.gate));
+                    }
+                    else
+                    {
+                        floorData.Add("     ");
+                    }
+                }
+            }
+        }
+        dict["box"] = boxData;
+        dict["floor"] = floorData;
+
+        string jsonStr = Json.Stringify(dict);
+        return Utils.SaveFile(path, fileName + ".json", jsonStr);
+    }
 }

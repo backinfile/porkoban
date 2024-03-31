@@ -151,5 +151,6 @@ public partial class RenderLogic : Node
         {
             Game.Instance.RemoveElementNode(node);
         }
+        nodeMap.Remove(e);
     }
 }
