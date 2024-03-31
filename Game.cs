@@ -91,6 +91,17 @@ public partial class Game : Node
         {
             var selfDefineNode = GetNode<VBoxContainer>("%SelfDefineLevels");
             selfDefineNode.ClearChildren();
+
+            var refreshFolderBtn = new Button();
+            refreshFolderBtn.Text = "[refresh levels]";
+            refreshFolderBtn.Pressed += () => { UpdateLevels(); };
+            selfDefineNode.AddChild(refreshFolderBtn);
+
+            var openFolderBtn = new Button();
+            openFolderBtn.Text = "[open system folder]";
+            openFolderBtn.Pressed += () => { OS.ShellOpen(GetSelfDefineLevelPath()); };
+            selfDefineNode.AddChild(openFolderBtn);
+
             foreach (var fileName in Utils.ListFiles(GetSelfDefineLevelPath()))
             {
                 var btn = new Button();
