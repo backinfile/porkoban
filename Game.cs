@@ -50,7 +50,7 @@ public partial class Game : Node
 
     public void SetCameraView(Vector2 offset, Vector2 size)
     {
-        var expandSize = new Vector2(size.X / 2f, size.Y / 4f);
+        var expandSize = new Vector2(size.X * 0.5f + ElementNode.Element_Size, size.Y * 0.25f + +ElementNode.Element_Size);
         offset += expandSize;
         size += expandSize;
 
@@ -100,7 +100,10 @@ public partial class Game : Node
 
             var openFolderBtn = new Button();
             openFolderBtn.Text = "[open system folder]";
-            openFolderBtn.Pressed += () => { OS.ShellOpen(GetSelfDefineLevelPath()); };
+            openFolderBtn.Pressed += () => {
+                DirAccess.MakeDirRecursiveAbsolute(GetSelfDefineLevelPath());
+                OS.ShellOpen(GetSelfDefineLevelPath()); 
+            };
             selfDefineNode.AddChild(openFolderBtn);
 
             foreach (var fileName in Utils.ListFiles(GetSelfDefineLevelPath()))
