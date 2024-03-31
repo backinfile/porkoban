@@ -23,7 +23,8 @@ public partial class Game : Node
             else
                 DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
         };
-        GetNode<Button>("%CreateNewLevelButton").Pressed += async () => { await EditorLogic.CreateSelfDefineLevel(); };
+        GetNode<Button>("%CreateLevelFromCurButton").Pressed += async () => { await EditorLogic.CreateSelfDefineLevel(true); };
+        GetNode<Button>("%CreateNewLevelButton").Pressed += async () => { await EditorLogic.CreateSelfDefineLevel(false); };
         UpdateLevels();
 
         EditorLogic.InitEditorPanel();

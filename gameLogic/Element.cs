@@ -115,6 +115,13 @@ public partial class Element : RefCounted
         return dirList;
     }
 
+    public void ClearSwallowState()
+    {
+        swallow = null;
+        swallowGate = ' ';
+        enterGateIndex = -1;
+    }
+
     public bool IsFloorElement()
     {
         return this.Type == Type.Target;

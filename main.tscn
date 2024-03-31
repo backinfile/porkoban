@@ -46,36 +46,26 @@ layout_mode = 2
 size_flags_vertical = 3
 tab_focus_mode = 0
 
-[node name="内置关卡" type="ItemList" parent="CanvasLayer/Control/VBoxContainer/TabContainer"]
+[node name="内置关卡" type="ScrollContainer" parent="CanvasLayer/Control/VBoxContainer/TabContainer"]
 layout_mode = 2
-focus_mode = 0
 
 [node name="BuildInLevels" type="VBoxContainer" parent="CanvasLayer/Control/VBoxContainer/TabContainer/内置关卡"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Button" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/内置关卡/BuildInLevels"]
 layout_mode = 2
 text = "1-1"
 
-[node name="自制关卡" type="ItemList" parent="CanvasLayer/Control/VBoxContainer/TabContainer"]
+[node name="自制关卡" type="ScrollContainer" parent="CanvasLayer/Control/VBoxContainer/TabContainer"]
 visible = false
 layout_mode = 2
-focus_mode = 0
 
 [node name="SelfDefineLevels" type="VBoxContainer" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Button2" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡/SelfDefineLevels"]
 layout_mode = 2
@@ -84,6 +74,14 @@ text = "10-10"
 [node name="Button" type="Button" parent="CanvasLayer/Control/VBoxContainer/TabContainer/自制关卡/SelfDefineLevels"]
 layout_mode = 2
 text = "1-1"
+
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/Control/VBoxContainer"]
+layout_mode = 2
+
+[node name="CreateLevelFromCurButton" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "从当前关卡新建关卡"
 
 [node name="CreateNewLevelButton" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
 unique_name_in_owner = true
@@ -218,9 +216,21 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="CanvasLayer/Control/EditorPanel/Save"]
 layout_mode = 2
-text = "文件名"
+text = "关卡名"
 
 [node name="LineEdit" type="LineEdit" parent="CanvasLayer/Control/EditorPanel/Save"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LevelComment" type="HBoxContainer" parent="CanvasLayer/Control/EditorPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/Control/EditorPanel/LevelComment"]
+layout_mode = 2
+text = "关卡注释"
+
+[node name="LevelCommentEdit" type="LineEdit" parent="CanvasLayer/Control/EditorPanel/LevelComment"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -234,7 +244,6 @@ text = "保存并运行"
 
 [node name="EditorModTip" type="HBoxContainer" parent="CanvasLayer/Control"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -246,4 +255,21 @@ grow_horizontal = 2
 
 [node name="Label" type="Label" parent="CanvasLayer/Control/EditorModTip"]
 layout_mode = 2
+size_flags_horizontal = 6
 text = "编辑模式"
+
+[node name="LevelComment" type="VBoxContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_top = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="LevelCommentLabel" type="Label" parent="CanvasLayer/Control/LevelComment"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "点击关卡名称以开始"

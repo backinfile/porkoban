@@ -10,6 +10,8 @@ public partial class GameMap : RefCounted
     public int height = 1;
     public readonly Dictionary<Element, bool> boxData = new();
     public readonly Dictionary<Element, bool> floorData = new();
+    public string comment = "";
+    public string levelName = "";
 
     private GameMap() { }
 
@@ -110,6 +112,8 @@ public partial class GameMap : RefCounted
         {
             copy.floorData[e.MakeCopy()] = true;
         }
+        copy.levelName = levelName;
+        copy.comment = comment;
         return copy;
     }
 
@@ -129,6 +133,20 @@ public partial class GameMap : RefCounted
         return true;
     }
 
+    public void FullWithEmptyElement()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (GetElement(x, y) == null)
+                {
+                    AddElement(Element.Create("     ", x, y));
+                }
+            }
+        }
+    }
+
     public static GameMap CreateEmpty(int width, int height, bool fullEmptyElement = false)
     {
         var gameMap = new GameMap();
@@ -136,13 +154,7 @@ public partial class GameMap : RefCounted
         gameMap.height = height;
         if (fullEmptyElement)
         {
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    gameMap.AddElement(Element.Create("     ", x, y));
-                }
-            }
+            gameMap.FullWithEmptyElement();
         }
         return gameMap;
     }
@@ -174,6 +186,10 @@ public partial class GameMap : RefCounted
             string typeStr = floorData[i];
             if (typeStr.Length == 0 || typeStr[0] == ' ') continue;
             map.AddFloorElement(Element.Create(typeStr, i % width, i / width));
+        }
+        if (data.ContainsKey("comment"))
+        {
+            map.comment = (string) data["comment"];
         }
         return map;
     }
@@ -216,8 +232,9 @@ public partial class GameMap : RefCounted
         }
         dict["box"] = boxData;
         dict["floor"] = floorData;
+        dict["comment"] = comment;
 
-        string jsonStr = Json.Stringify(dict);
+        string jsonStr = Json.Stringify(dict, "    ");
         return Utils.SaveFile(path, fileName + ".json", jsonStr);
     }
 }

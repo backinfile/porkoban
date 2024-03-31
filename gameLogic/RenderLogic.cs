@@ -79,6 +79,11 @@ public partial class RenderLogic : Node
             CreateElementNodeRe(gameMap, e);
         }
 
+        {
+            string levelName = gameMap.levelName.Length > 0 ? $"[{gameMap.levelName}]" : "";
+            Game.Instance.GetNode<Label>("%LevelCommentLabel").Text = $"{levelName}{gameMap.comment}";
+        }
+
         OnSizeChanged();
     }
 

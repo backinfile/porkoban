@@ -41,6 +41,15 @@ public partial class GameLogic : RefCounted
         {
             gameMap = GameMap.ParseFile(Path.GetDirectoryName(OS.GetExecutablePath()) + $"/levels/{fileName}.json");
         }
+        if (gameMap == null)
+        {
+            OS.Alert($"open level {fileName} error");
+            gameMap = GameMap.CreateEmpty(1, 1);
+            gameMap.levelName = "open level error";
+        } else
+        {
+            gameMap.levelName = fileName;
+        }
         GameLogic.theFirstGameMap = gameMap.MakeCopy();
         GameLogic.gameMap = gameMap;
         RenderLogic.RefreshRender(gameMap);

@@ -2,6 +2,7 @@ using Godot;
 using Godot.Collections;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -33,7 +34,7 @@ public partial class EditorLogic : Node
     }
 
 
-    public static async Task CreateSelfDefineLevel()
+    public static async Task CreateSelfDefineLevel(bool fromCur)
     {
         if (GameLogic.IsMoving)
         {
@@ -41,12 +42,27 @@ public partial class EditorLogic : Node
             await Game.Wait(RenderLogic.MOVE_INTERVAL * 2);
         }
         GameLogic.Clear();
-        EditorMapSize = new Vector2I(5, 5);
-        GameMap gameMap = GameMap.CreateEmpty(5, 5, true);
-        GameLogic.theFirstGameMap = gameMap.MakeCopy();
-        GameLogic.gameMap = gameMap;
-        RenderLogic.RefreshRender(gameMap);
+        GameLogic.theFirstGameMap = null;
 
+        if (fromCur && GameLogic.gameMap != null)
+        {
+            var gameMap = GameLogic.gameMap.MakeCopy();
+            foreach(var e in gameMap.boxData.Keys)
+            {
+                e.ClearSwallowState();
+            }
+            gameMap.FullWithEmptyElement();
+            EditorMapSize = new Vector2I(gameMap.width, gameMap.height);
+            GameLogic.gameMap = gameMap;
+        }
+        else
+        {
+            EditorMapSize = new Vector2I(5, 5);
+            GameMap gameMap = GameMap.CreateEmpty(5, 5, true);
+            GameLogic.gameMap = gameMap;
+        }
+
+        RenderLogic.RefreshRender(GameLogic.gameMap);
         InEditorMode = true;
         ShowEditorPanel();
     }
@@ -61,15 +77,6 @@ public partial class EditorLogic : Node
     {
         InEditorMode = false;
         ShowEditorPanel(false);
-    }
-
-    public void _on_reset_level_button_pressed()
-    {
-        GD.Print("reset room");
-
-        var size = EditorMapSize;
-        GameLogic.gameMap = GameMap.CreateEmpty(size.X, size.Y, true);
-        RenderLogic.RefreshRender(GameLogic.gameMap);
     }
 
     public static void OnMapSizeChanged()
@@ -156,6 +163,12 @@ public partial class EditorLogic : Node
         return text[0];
     }
 
+    private static string GetLevelCommentEdit()
+    {
+        string text = Game.Instance.GetNode<LineEdit>("%LevelCommentEdit").Text;
+        return text ?? "";
+    }
+
 
     public static void OnElementClick(Element element)
     {
@@ -192,7 +205,8 @@ public partial class EditorLogic : Node
                 element = Element.Create((char)type + "    ", pos.X, pos.Y);
                 gameMap.AddElement(element);
                 RenderLogic.CreateElementNodeRe(gameMap, element);
-            } else
+            }
+            else
             {
                 gameMap.RemoveElement(element);
                 RenderLogic.Remove(gameMap, element);
@@ -231,6 +245,14 @@ public partial class EditorLogic : Node
 
         Game.Instance.GetNode<SpinBox>("%MapWidth").ValueChanged += (v) => { EditorLogic.OnMapSizeChanged(); };
         Game.Instance.GetNode<SpinBox>("%MapHeight").ValueChanged += (v) => { EditorLogic.OnMapSizeChanged(); };
+        Game.Instance.GetNode("%EditorPanel").GetNode<Button>("ResetLevelButton").Pressed += () =>
+        {
+            GD.Print("reset room");
+            var size = EditorMapSize;
+            GameLogic.gameMap = GameMap.CreateEmpty(size.X, size.Y, true);
+            RenderLogic.RefreshRender(GameLogic.gameMap);
+        };
+
 
         {
             CheckButton drawBoxCheck = Game.Instance.GetNode<CheckButton>("%DrawBoxCheck");
@@ -264,12 +286,14 @@ public partial class EditorLogic : Node
         {
             if (e.Type == Type.None) gameMap.RemoveElement(e);
         }
+        gameMap.comment = GetLevelCommentEdit();
 
         // save
         if (gameMap.Save(fileName, Game.GetSelfDefineLevelPath()))
         {
             OS.Alert($"save {fileName} success!");
-        } else
+        }
+        else
         {
             OS.Alert($"save {fileName} failed!");
             return;
