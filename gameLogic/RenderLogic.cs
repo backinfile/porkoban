@@ -110,7 +110,7 @@ public partial class RenderLogic : Node
             node.Modulate = new Color(1, 1, 1, layer == 0 ? 1 : 0.8f);
             Game.Instance.AddElementNode(node);
 
-            if (e.Type == Type.Target)
+            if (e.Type.IsFloorType())
             {
                 node.ZIndex = Res.Z_Target;
             }

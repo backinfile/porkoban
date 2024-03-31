@@ -32,6 +32,11 @@ public static partial class Utils
         return new Vector2I(pos.X + dir.DX(), pos.Y + dir.DY());
     }
 
+    public static bool IsFloorType(this Type type)
+    {
+        return type == Type.Target || type == Type.Finish;
+    }
+
     public static int ToRotation(this DIR dir)
     {
         return dir switch
@@ -123,6 +128,7 @@ public static partial class Utils
                 fileName = dir.GetNext();
             }
         }
+        result.Sort();
         return result;
     }
 

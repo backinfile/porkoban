@@ -22,6 +22,8 @@ public partial class ElementNode : Node2D
     [Export]
     public Texture2D TargetTexture;
     [Export]
+    public Texture2D FinishTexture;
+    [Export]
     public Texture2D EmptyTexture;
     [Export]
     public Texture2D GateTexture;
@@ -40,6 +42,7 @@ public partial class ElementNode : Node2D
             Type.Box => node.BoxTexture,
             Type.Wall => node.WallTexture,
             Type.Target => node.TargetTexture,
+            Type.Finish => node.FinishTexture,
             _ => node.EmptyTexture,
         };
         mainSprite.GuiInput += (ev) =>
@@ -79,7 +82,7 @@ public partial class ElementNode : Node2D
             }
         }
 
-        if (element.Type == Type.Target)
+        if (element.Type.IsFloorType())
         {
             node.ZIndex = Res.Z_Target;
         }

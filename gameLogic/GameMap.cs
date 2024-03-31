@@ -128,6 +128,13 @@ public partial class GameMap : RefCounted
                 {
                     return false;
                 }
+            } else if (target.Type == Type.Finish)
+            {
+                Element element = GetElement(target.Position);
+                if (element == null || element.Type != Type.Player)
+                {
+                    return false;
+                }
             }
         }
         return true;

@@ -19,7 +19,7 @@ public partial class Res : RefCounted
 
     public static void Init()
     {
-        InitElementTexture();
+        //InitElementTexture();
     }
 
     public static void InitElementTexture()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bq5p5fd5igc6f"]
+[gd_scene load_steps=10 format=3 uid="uid://bq5p5fd5igc6f"]
 
 [ext_resource type="Script" path="res://node/ElementNode.cs" id="1_j5e2c"]
 [ext_resource type="Texture2D" uid="uid://dymxeyvecu5tw" path="res://image/player.png" id="2_np5ct"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://byyds2c11eptn" path="res://image/protal.png" id="4_o428u"]
 [ext_resource type="Texture2D" uid="uid://bm1um3k2n3x4o" path="res://image/wall.png" id="4_ungpw"]
 [ext_resource type="Texture2D" uid="uid://rprmthwtbcd4" path="res://image/target.png" id="5_cu8fb"]
+[ext_resource type="Texture2D" uid="uid://cwfry0dlfm8ql" path="res://image/Finish.png" id="6_2xgan"]
 [ext_resource type="Texture2D" uid="uid://bc8mirk8s2ikk" path="res://image/empty.png" id="6_x4wub"]
 [ext_resource type="Texture2D" uid="uid://bkn3dcq3f7shr" path="res://image/select.png" id="8_v4fs2"]
 
@@ -15,6 +16,7 @@ PlayerTexture = ExtResource("2_np5ct")
 BoxTexture = ExtResource("3_aq2at")
 WallTexture = ExtResource("4_ungpw")
 TargetTexture = ExtResource("5_cu8fb")
+FinishTexture = ExtResource("6_2xgan")
 EmptyTexture = ExtResource("6_x4wub")
 GateTexture = ExtResource("4_o428u")
 

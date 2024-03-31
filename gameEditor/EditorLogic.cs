@@ -125,6 +125,7 @@ public partial class EditorLogic : Node
             2 => Type.Box,
             3 => Type.Wall,
             4 => Type.Target,
+            5 => Type.Finish,
             _ => Type.None,
         };
     }
@@ -183,13 +184,23 @@ public partial class EditorLogic : Node
         {
             Type type = GetCurSelectType();
 
-            if (type == Type.Target)
+            if (type.IsFloorType())
             {
                 Element floor = gameMap.GetFloorElement(pos);
                 if (floor != null)
                 {
-                    gameMap.RemoveElement(floor);
-                    RenderLogic.Remove(gameMap, floor);
+                    if (floor.Type == type)
+                    {
+                        gameMap.RemoveElement(floor);
+                        RenderLogic.Remove(gameMap, floor);
+                    } else
+                    {
+                        gameMap.RemoveElement(floor);
+                        RenderLogic.Remove(gameMap, floor);
+                        element = Element.Create((char)type + "    ", pos.X, pos.Y);
+                        gameMap.AddFloorElement(element);
+                        RenderLogic.CreateElementNodeRe(gameMap, element);
+                    }
                 }
                 else
                 {
@@ -231,6 +242,7 @@ public partial class EditorLogic : Node
                     element.gate[(int)dir] = ' ';
                     element.side[(int)dir] = Side.None;
                 }
+                gameMap.RemoveElement(element);
                 RenderLogic.Remove(gameMap, element);
                 gameMap.AddElement(element);
                 RenderLogic.CreateElementNodeRe(gameMap, element);

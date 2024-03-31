@@ -77,14 +77,11 @@ public partial class Element : RefCounted
     {
         int Rotation = ((int)to - (int)from + 4) % 4;
         var copySide = (Side[])side.Clone();
-        for (int i = 0; i < copySide.Length; i++)
-        {
-            side[i] = copySide[(i + Rotation) % 4];
-        }
         var copyGate = (char[])gate.Clone();
         for (int i = 0; i < copyGate.Length; i++)
         {
-            gate[i] = copyGate[(i + Rotation) % 4];
+            side[(i + Rotation) % 4] = copySide[i];
+            gate[(i + Rotation) % 4] = copyGate[i];
         }
         swallow?.Rotate(from, to);
     }
@@ -124,7 +121,7 @@ public partial class Element : RefCounted
 
     public bool IsFloorElement()
     {
-        return this.Type == Type.Target;
+        return Type.IsFloorType();
     }
     public bool CanSwallowOther(DIR dir)
     {
@@ -150,10 +147,11 @@ public partial class Element : RefCounted
 public enum Type
 {
     None = ' ',
-    Wall = 'W',
     Player = 'P',
+    Box = 'B',
+    Wall = 'W',
     Target = 'T',
-    Box = 'B'
+    Finish = 'F',
 }
 public enum Side
 {

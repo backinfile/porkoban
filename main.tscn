@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://des626bup51yn"]
+[gd_scene load_steps=10 format=3 uid="uid://des626bup51yn"]
 
 [ext_resource type="Script" path="res://Game.cs" id="1_1o4nv"]
 [ext_resource type="Texture2D" uid="uid://dymxeyvecu5tw" path="res://image/player.png" id="2_6rpdh"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://81qb8ar70eqw" path="res://image/box.png" id="3_63f41"]
 [ext_resource type="Texture2D" uid="uid://bm1um3k2n3x4o" path="res://image/wall.png" id="4_vxqqu"]
 [ext_resource type="Texture2D" uid="uid://rprmthwtbcd4" path="res://image/target.png" id="5_ind3j"]
+[ext_resource type="Texture2D" uid="uid://cwfry0dlfm8ql" path="res://image/Finish.png" id="7_w7c7r"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_3d6gl"]
 device = -1
@@ -153,7 +154,7 @@ text = "绘制箱子："
 unique_name_in_owner = true
 layout_mode = 2
 keep_pressed_outside = true
-item_count = 5
+item_count = 6
 selected = 0
 popup/item_0/text = "空"
 popup/item_0/icon = ExtResource("2_nnh67")
@@ -170,6 +171,9 @@ popup/item_3/id = 3
 popup/item_4/text = "Target"
 popup/item_4/icon = ExtResource("5_ind3j")
 popup/item_4/id = 4
+popup/item_5/text = "Finish"
+popup/item_5/icon = ExtResource("7_w7c7r")
+popup/item_5/id = 5
 
 [node name="HSeparator2" type="HSeparator" parent="CanvasLayer/Control/EditorPanel"]
 layout_mode = 2
