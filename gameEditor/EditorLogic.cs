@@ -54,17 +54,19 @@ public partial class EditorLogic : Node
             gameMap.FullWithEmptyElement();
             EditorMapSize = new Vector2I(gameMap.width, gameMap.height);
             GameLogic.gameMap = gameMap;
+            SetLevelCommentEdit(gameMap.comment);
+            SetLevelName(gameMap.levelName);
         }
         else
         {
-            EditorMapSize = new Vector2I(5, 5);
-            GameMap gameMap = GameMap.CreateEmpty(5, 5, true);
+            EditorMapSize = new Vector2I(7, 5);
+            GameMap gameMap = GameMap.CreateEmpty(7, 5, true);
             GameLogic.gameMap = gameMap;
         }
 
-        RenderLogic.RefreshRender(GameLogic.gameMap);
         InEditorMode = true;
         ShowEditorPanel();
+        RenderLogic.RefreshRender(GameLogic.gameMap);
     }
 
     public static void ShowEditorPanel(bool show = true)
@@ -168,6 +170,15 @@ public partial class EditorLogic : Node
     {
         string text = Game.Instance.GetNode<LineEdit>("%LevelCommentEdit").Text;
         return text ?? "";
+    }
+
+    private static void SetLevelCommentEdit(string comment)
+    {
+        Game.Instance.GetNode<LineEdit>("%LevelCommentEdit").Text = comment;
+    }
+    private static void SetLevelName(string text)
+    {
+        Game.Instance.GetNode("%EditorPanel").GetNode("Save").GetNode<LineEdit>("LineEdit").Text = text;
     }
 
 
@@ -282,6 +293,38 @@ public partial class EditorLogic : Node
             Game.Instance.GetNode("%EditorPanel").GetNode<Button>("SaveButton").Pressed += async () => await SaveAndPlay(false);
             Game.Instance.GetNode("%EditorPanel").GetNode<Button>("SaveAndPlayButton").Pressed += async () => await SaveAndPlay(true);
         }
+
+        {
+            Game.Instance.GetNode("%EditorPanel").GetNode<Button>("AllBoxMoveUp").Pressed += () => MoveAllBox(DIR.UP);
+            Game.Instance.GetNode("%EditorPanel").GetNode<Button>("AllBoxMoveLeft").Pressed += () => MoveAllBox(DIR.LEFT);
+            Game.Instance.GetNode("%EditorPanel").GetNode<Button>("AllBoxMoveDown").Pressed += () => MoveAllBox(DIR.DOWN);
+            Game.Instance.GetNode("%EditorPanel").GetNode<Button>("AllBoxMoveRight").Pressed += () => MoveAllBox(DIR.RIGHT);
+        }
+    }
+
+    public static void MoveAllBox(DIR dir)
+    {
+        GameMap gameMap = GameLogic.gameMap;
+        foreach (var e in gameMap.boxData.Keys.ToList())
+        {
+            gameMap.RemoveElement(e);
+            e.Position = e.Position.NextPos(dir);
+            if (gameMap.InMapArea(e.Position))
+            {
+                gameMap.AddElement(e);
+            }
+        }
+        foreach (var e in gameMap.floorData.Keys.ToList())
+        {
+            gameMap.RemoveElement(e);
+            e.Position = e.Position.NextPos(dir);
+            if (gameMap.InMapArea(e.Position))
+            {
+                gameMap.AddFloorElement(e);
+            }
+        }
+        GameLogic.gameMap = gameMap.MakeCopy();
+        RenderLogic.RefreshRender(GameLogic.gameMap);
     }
 
     private static async Task SaveAndPlay(bool play)

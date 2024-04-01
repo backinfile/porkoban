@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,9 +10,9 @@ public partial class RenderLogic : Node
     public const double MOVE_INTERVAL = 0.13;
     private static readonly Dictionary<Element, ElementNode> nodeMap = new();
 
-    public static async Task UpdateGameMap(GameMap map, List<Element> removed)
+    public static async Task UpdateGameMap(GameMap map, List<Element> removed = null)
     {
-        if (removed.Count > 0)
+        if (removed != null && removed.Count > 0)
         {
             foreach (var e in removed)
             {
@@ -29,12 +30,18 @@ public partial class RenderLogic : Node
             MoveRe(map, e);
         }
 
-        await Game.Wait(MOVE_INTERVAL);
+        if (!EditorLogic.InEditorMode)
+        {
+            await Game.Wait(MOVE_INTERVAL);
+        }
 
         foreach (var e in map.boxData.Keys)
         {
             CreateElementNodeRe(map, e);
         }
+
+        // set element march state
+        RefreshElementMarch(map);
     }
 
     private static void MoveRe(GameMap gameMap, Element e, int layer = 0)
@@ -50,6 +57,39 @@ public partial class RenderLogic : Node
             node.ZIndex = (layer == 0) ? Res.Z_Ground : (Res.Z_Swallow + layer);
         }
         MoveRe(gameMap, e.swallow, layer + 1);
+    }
+
+    public static void RefreshElementMarch(GameMap gameMap)
+    {
+        foreach(var e in gameMap.boxData.Keys)
+        {
+            SetElementMarchRe(gameMap, e);
+        }
+    }
+
+    private static void SetElementMarchRe(GameMap gameMap, Element e, int layer = 0)
+    {
+        if (e == null) return;
+        ElementNode node = GetElementNode(e, false);
+        if (node != null)
+        {
+            bool march = false;
+            if (layer == 0 && !EditorLogic.InEditorMode)
+            {
+                if (e.Type == Type.Player)
+                {
+                    Element floor = gameMap.GetFloorElement(e.Position);
+                    if (floor != null && floor.Type == Type.Finish) march = true;
+                }
+                else if (e.Type == Type.Box)
+                {
+                    Element floor = gameMap.GetFloorElement(e.Position);
+                    if (floor != null && floor.Type == Type.Target) march = true;
+                }
+            }
+            node.SetMarch(march);
+        }
+        SetElementMarchRe(gameMap, e.swallow, layer + 1);
     }
 
     public static void RefreshRender(GameMap gameMap)
@@ -85,6 +125,9 @@ public partial class RenderLogic : Node
         }
 
         OnSizeChanged();
+
+        // set element march state
+        RefreshElementMarch(gameMap);
     }
 
     public static void OnSizeChanged()
@@ -128,11 +171,6 @@ public partial class RenderLogic : Node
             return node;
         }
         return null;
-    }
-
-    public static void DoMove(List<Step> steps)
-    {
-        RefreshRender(GameLogic.gameMap);
     }
 
     public static Vector2 CalcNodePosition(GameMap gameMap, int x = 0, int y = 0)

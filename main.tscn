@@ -215,6 +215,22 @@ max_length = 1
 layout_mode = 2
 size_flags_vertical = 3
 
+[node name="AllBoxMoveUp" type="Button" parent="CanvasLayer/Control/EditorPanel"]
+layout_mode = 2
+text = "↑所有箱子上移一格"
+
+[node name="AllBoxMoveLeft" type="Button" parent="CanvasLayer/Control/EditorPanel"]
+layout_mode = 2
+text = "←所有箱子左移一格"
+
+[node name="AllBoxMoveDown" type="Button" parent="CanvasLayer/Control/EditorPanel"]
+layout_mode = 2
+text = "↓所有箱子下移一格"
+
+[node name="AllBoxMoveRight" type="Button" parent="CanvasLayer/Control/EditorPanel"]
+layout_mode = 2
+text = "→所有箱子右移一格"
+
 [node name="Save" type="HBoxContainer" parent="CanvasLayer/Control/EditorPanel"]
 layout_mode = 2
 

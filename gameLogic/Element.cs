@@ -13,23 +13,28 @@ public partial class Element : RefCounted
     public Side[] side = { Side.None, Side.None, Side.None, Side.None }; // up down left right
     public char[] gate = { ' ', ' ', ' ', ' ' }; // use non UpperCase
 
+    public int id = -1;
     public Element swallow = null;
     public char swallowGate = ' ';
     public int enterGateIndex = -1;
 
+    private static int IDMax = 0;
+
     private Element()
     {
+        id = IDMax++;
     }
 
     public Element MakeCopy()
     {
         var copy = new Element
         {
+            id = id,
             Type = Type,
             Position = Position,
             side = (Side[])side.Clone(),
             gate = (char[])gate.Clone(),
-            swallow = swallow,
+            swallow = swallow?.MakeCopy(),
             swallowGate = swallowGate,
         };
         return copy;
@@ -125,7 +130,7 @@ public partial class Element : RefCounted
     }
     public bool CanSwallowOther(DIR dir)
     {
-        return swallow == null && HasGate(dir); 
+        return swallow == null && HasGate(dir);
     }
     public bool CanEnterFrom(DIR dir)
     {

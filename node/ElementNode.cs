@@ -134,4 +134,9 @@ public partial class ElementNode : Node2D
         Random random = new(ch);
         return new Color((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
     }
+
+    public void SetMarch(bool march)
+    {
+        GetNode<TextureRect>("March").Visible = march;
+    }
 }

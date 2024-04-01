@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 public partial class GameMap : RefCounted
@@ -88,7 +89,14 @@ public partial class GameMap : RefCounted
 
     public List<Element> FindGateElements(char gate, Element except = null)
     {
-        return boxData.Keys.Where(e => e != except && e.ContainsGate(gate)).ToList();
+        Dictionary<Element, bool> result = new Dictionary<Element, bool>();
+        foreach (var e in boxData.Keys) _FindGateElements(gate, e, result, except);
+        return result.Keys.ToList();
+    }
+    private void _FindGateElements(char gate, Element e, Dictionary<Element, bool> result, Element except, int layer = 0)
+    {
+        if (e != except && e.ContainsGate(gate)) result[e] = true;
+        if (e.swallow != null && layer < 5) _FindGateElements(gate, e.swallow, result, except, layer + 1);
     }
 
 
@@ -128,7 +136,8 @@ public partial class GameMap : RefCounted
                 {
                     return false;
                 }
-            } else if (target.Type == Type.Finish)
+            }
+            else if (target.Type == Type.Finish)
             {
                 Element element = GetElement(target.Position);
                 if (element == null || element.Type != Type.Player)
@@ -196,7 +205,7 @@ public partial class GameMap : RefCounted
         }
         if (data.ContainsKey("comment"))
         {
-            map.comment = (string) data["comment"];
+            map.comment = (string)data["comment"];
         }
         return map;
     }
