@@ -1,7 +1,9 @@
 name: Build Godot Project
 
-on:
-  workflow_dispatch
+on: 
+  push:
+    tags:
+      - "v*"
 
 jobs:
   # job id, can be anything
@@ -31,17 +33,10 @@ jobs:
 
       # This release action has worked well for me. However, you can most likely use any release action of your choosing.
       # https://github.com/ncipollo/release-action
-    - name: Generate release tag
-      id: generate_release_tag
-      uses: amitsingh-007/next-release-tag@v5.0.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        tag_prefix: 'v'
-        tag_template: 'yyyy.mm.dd.i'
     - name: create release
       uses: ncipollo/release-action@v1.12.0
       with:
-        tag: ${{ steps.generate_release_tag.outputs.next_release_tag }}
         token: ${{ secrets.GITHUB_TOKEN }}
         generateReleaseNotes: true
+        tag: ${{ github.ref_name }}
         artifacts: ${{ steps.export.outputs.archive_directory }}/*
