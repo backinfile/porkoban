@@ -39,11 +39,11 @@ public partial class GameLogic : RefCounted
         }
         else
         {
-            gameMap = GameMap.ParseFile(Path.GetDirectoryName(OS.GetExecutablePath()) + $"/levels/{fileName}.json");
+            gameMap = GameMap.ParseFile(Game.GetSelfDefineLevelPath() + $"/{fileName}.json");
         }
         if (gameMap == null)
         {
-            OS.Alert($"open level {fileName} error");
+            Game.Instance.SendNotice($"open level {fileName} error");
             gameMap = GameMap.CreateEmpty(1, 1);
             gameMap.levelName = "open level error";
         } else

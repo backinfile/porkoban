@@ -19,6 +19,20 @@ public partial class Game : Node
         GD.Print("WorkPath: " + OS.GetExecutablePath());
         Instance = this;
         Res.Init();
+
+        {
+            var retina_scale = DisplayServer.ScreenGetScale();
+            GD.Print($"retina_scale = {retina_scale} window sacle factor={GetWindow().ContentScaleFactor}");
+            if (GetWindow().ContentScaleFactor != retina_scale)
+            {
+                var relative_scale = retina_scale / GetWindow().ContentScaleFactor;
+                GetWindow().ContentScaleFactor = retina_scale;
+                GetWindow().Size = GetWindow().Size.Mul(relative_scale);
+            }
+        }
+
+
+
         GetTree().Root.SizeChanged += RenderLogic.OnSizeChanged;
         GetNode<Button>("%ExitButton").Pressed += () => { GetTree().Quit(); };
         GetNode<Button>("%ToggleFullScreen").Pressed += () =>
@@ -113,8 +127,9 @@ public partial class Game : Node
             openFolderBtn.Text = "[open system folder]";
             openFolderBtn.Pressed += () =>
             {
-                DirAccess.MakeDirRecursiveAbsolute(GetSelfDefineLevelPath());
-                OS.ShellOpen(GetSelfDefineLevelPath());
+                string path = ProjectSettings.GlobalizePath(GetSelfDefineLevelPath());
+                DirAccess.MakeDirRecursiveAbsolute(path);
+                OS.ShellOpen(path);
             };
             selfDefineNode.AddChild(openFolderBtn);
 
@@ -165,6 +180,6 @@ public partial class Game : Node
 
     public static string GetSelfDefineLevelPath()
     {
-        return Path.GetDirectoryName(OS.GetExecutablePath()) + "/levels";
+        return "user://levels";
     }
 }

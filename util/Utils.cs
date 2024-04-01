@@ -172,6 +172,11 @@ public static partial class Utils
             n.QueueFree();
         }
     }
+
+    public static Vector2I Mul(this Vector2I a, float b)
+    {
+        return new Vector2I((int)(a.X * b), (int)(a.Y * b));
+    }
 }
 public enum DIR
 {
