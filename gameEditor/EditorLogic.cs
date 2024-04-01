@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 public partial class EditorLogic : Node
 {
@@ -332,7 +333,7 @@ public partial class EditorLogic : Node
         string fileName = GetCurFileName();
         if (fileName == null || fileName.Length == 0)
         {
-            OS.Alert("no file name!");
+            Game.Instance.SendNotice("no file name!");
             return;
         }
         var gameMap = GameLogic.gameMap.MakeCopy();
@@ -346,11 +347,11 @@ public partial class EditorLogic : Node
         // save
         if (gameMap.Save(fileName, Game.GetSelfDefineLevelPath()))
         {
-            OS.Alert($"save {fileName} success!");
+            Game.Instance.SendNotice($"save {fileName} success!");
         }
         else
         {
-            OS.Alert($"save {fileName} failed!");
+            Game.Instance.SendNotice($"save {fileName} failed!");
             return;
         }
         Game.Instance.UpdateLevels();

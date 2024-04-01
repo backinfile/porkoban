@@ -143,13 +143,25 @@ public static partial class Utils
             {
                 fileAccess.StoreString(content);
                 fileAccess.Close();
+                GD.Print($"SaveFile {fileName} success");
                 return true;
             }
         } catch (Exception e)
         {
-            GD.PrintErr(e);
+            GD.PrintErr("SaveFileError file:" + fileName, e);
         }
         return false;
+    }
+
+    public static void ExchangeFileName(string path, string fileName1, string fileName2)
+    {
+        var path1 = path + "/" + fileName1;
+        var path2 = path + "/" + fileName2;
+        string content1 = FileAccess.GetFileAsString(path1);
+        string content2 = FileAccess.GetFileAsString(path2);
+        SaveFile(path, fileName1, content2);
+        SaveFile(path, fileName2, content1);
+        GD.Print($"ExchangeFileName {fileName1} with {fileName2}");
     }
 
     public static void ClearChildren(this Node node)

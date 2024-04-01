@@ -1,12 +1,17 @@
 using Godot;
 using System;
+using System.Collections;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 public partial class Game : Node
 {
+    private double noticeHideTimer = 0;
+
+
     public static Game Instance { get; private set; }
 
     public override void _Ready()
@@ -33,6 +38,12 @@ public partial class Game : Node
 
     public override async void _Process(double delta)
     {
+        if (noticeHideTimer > 0)
+        {
+            noticeHideTimer -= delta;
+            if (noticeHideTimer < 0) HideNotice();
+        }
+
         EditorLogic.Update();
         await GameLogic.Update();
     }
@@ -100,21 +111,58 @@ public partial class Game : Node
 
             var openFolderBtn = new Button();
             openFolderBtn.Text = "[open system folder]";
-            openFolderBtn.Pressed += () => {
+            openFolderBtn.Pressed += () =>
+            {
                 DirAccess.MakeDirRecursiveAbsolute(GetSelfDefineLevelPath());
-                OS.ShellOpen(GetSelfDefineLevelPath()); 
+                OS.ShellOpen(GetSelfDefineLevelPath());
             };
             selfDefineNode.AddChild(openFolderBtn);
 
+            string lastFileName = null;
             foreach (var fileName in Utils.ListFiles(GetSelfDefineLevelPath()))
             {
-                var btn = new Button();
-                btn.Text = fileName;
-                btn.Pressed += async () => { await GameLogic.OpenLevel(fileName, false); };
-                selfDefineNode.AddChild(btn);
+                string trueLastFileName = lastFileName;
+                var hBox = new HBoxContainer();
+                var fileBtn = new Button();
+                fileBtn.Text = fileName;
+                fileBtn.Pressed += async () => { await GameLogic.OpenLevel(fileName, false); };
+                fileBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+                hBox.AddChild(fileBtn);
+                var upBtn = new Button();
+                upBtn.Text = "UP";
+                upBtn.Pressed += () =>
+                {
+                    GD.Print("trueLastFileName = " + trueLastFileName);
+                    if (trueLastFileName != null)
+                    {
+                        Utils.ExchangeFileName(GetSelfDefineLevelPath(), fileName + ".json", trueLastFileName + ".json");
+                        UpdateLevels();
+                        SendNotice("exchange level name done!");
+                    }
+                };
+                hBox.AddChild(upBtn);
+                selfDefineNode.AddChild(hBox);
+                lastFileName = fileName;
             }
         }
     }
+
+    public void SendNotice(string notice)
+    {
+        Rect2 rect2 = GetViewport().GetVisibleRect();
+        PopupPanel popupPanel = GetNode<PopupPanel>("%PopupPanel");
+        popupPanel.GetChild<Label>(0).Text = notice;
+        popupPanel.Popup();
+        popupPanel.Position = new Vector2I((int)((rect2.Size.X - popupPanel.Size.X) / 2f), 0);
+        noticeHideTimer = 1f;
+    }
+
+    public void HideNotice()
+    {
+        PopupPanel popupPanel = GetNode<PopupPanel>("%PopupPanel");
+        popupPanel.Hide();
+    }
+
     public static string GetSelfDefineLevelPath()
     {
         return Path.GetDirectoryName(OS.GetExecutablePath()) + "/levels";

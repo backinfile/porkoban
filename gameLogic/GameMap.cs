@@ -96,7 +96,7 @@ public partial class GameMap : RefCounted
     private void _FindGateElements(char gate, Element e, Dictionary<Element, bool> result, Element except, int layer = 0)
     {
         if (e != except && e.ContainsGate(gate)) result[e] = true;
-        if (e.swallow != null && layer < 5) _FindGateElements(gate, e.swallow, result, except, layer + 1);
+        if (e.swallow != null) _FindGateElements(gate, e.swallow, result, except, layer + 1);
     }
 
 

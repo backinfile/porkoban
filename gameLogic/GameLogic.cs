@@ -124,6 +124,11 @@ public partial class GameLogic : RefCounted
         }
         checkGateFirstQueue.Clear();
         IsMoving = false;
+
+        if (gameMap.IsGameOver())
+        {
+            Game.Instance.SendNotice("win");
+        }
     }
 
     public static async Task DoMove(GameMap gameMap, List<Step> steps)
