@@ -52,20 +52,15 @@ public partial class ElementNode : Node2D
                 if (e.ButtonIndex == MouseButton.Left)
                 {
                     EditorLogic.OnElementClick(element);
-                } else if (e.ButtonIndex == MouseButton.Middle)
+                }
+                else if (e.ButtonIndex == MouseButton.Middle)
                 {
                     //EditorLogic.OnMouseScroll(e.d)
                 }
             }
         };
-        mainSprite.MouseEntered += () =>
-        {
-            if (EditorLogic.InEditorMode) node.GetNode<TextureRect>("Select").Visible = true;
-        }; 
-        mainSprite.MouseExited += () =>
-        {
-            if (EditorLogic.InEditorMode) node.GetNode<TextureRect>("Select").Visible = false;
-        };
+        mainSprite.MouseEntered += () => node.SetSelect(true);
+        mainSprite.MouseExited += () => node.SetSelect(false);
 
         foreach (var dir in Enum.GetValues<DIR>())
         {
@@ -138,5 +133,18 @@ public partial class ElementNode : Node2D
     public void SetMarch(bool march)
     {
         GetNode<TextureRect>("March").Visible = march;
+    }
+
+    private void SetSelect(bool select)
+    {
+        if (EditorLogic.InEditorMode)
+        {
+            GetNode<TextureRect>("Select").Visible = select;
+
+            Label label = GetNode<Label>("GateChar");
+            label.Text = $"     {element.gate[0]}\n{element.gate[1]}         {element.gate[3]}\n    {element.gate[2]}";
+            label.Visible = select;
+        }
+
     }
 }
