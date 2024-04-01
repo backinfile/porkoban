@@ -44,5 +44,4 @@ jobs:
         tag: ${{ steps.generate_release_tag.outputs.next_release_tag }}
         token: ${{ secrets.GITHUB_TOKEN }}
         generateReleaseNotes: true
-        tag: ${{ github.     }}
         artifacts: ${{ steps.export.outputs.archive_directory }}/*
